@@ -1,0 +1,11 @@
+import fs from 'fs';
+let css = fs.readFileSync('src/index.css', 'utf8');
+css = css.replace(/amber/g, 'accent');
+css = css.replace('rgba(232, 160, 48, 0.12)', 'color-mix(in srgb, var(--accent) 12%, transparent)');
+css = css.replace('rgba(232, 160, 48, 0.25)', 'color-mix(in srgb, var(--accent) 25%, transparent)');
+css = css.replace('rgba(232,160,48,0.05)', 'color-mix(in srgb, var(--accent) 5%, transparent)');
+css = css.replace('--accent: #e8a030;', '');
+css = css.replace('--accent-dim: #b07a22;', '');
+css = css.replace('--accent-glow: color-mix(in srgb, var(--accent) 12%, transparent);', '');
+css = css.replace('--border-accent: color-mix(in srgb, var(--accent) 25%, transparent);', '');
+fs.writeFileSync('src/index.css', css);

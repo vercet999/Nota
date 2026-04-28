@@ -2,7 +2,7 @@
 // Root component. Layout: header → chat window → controls → input
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useChat } from './hooks/useChat'
 import { ChatWindow } from './components/ChatWindow'
 import { ModeSelector } from './components/ModeSelector'
@@ -11,9 +11,14 @@ import { SettingsModal } from './components/SettingsModal'
 
 export default function App() {
   const [userName, setUserName] = useState(() => localStorage.getItem('study_userName') || '')
+  const [accentColor, setAccentColor] = useState(() => localStorage.getItem('study_accentColor') || '#e8a030')
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
 
   const activeName = userName.trim() || 'Royalty'
+
+  useEffect(() => {
+    document.documentElement.style.setProperty('--accent', accentColor)
+  }, [accentColor])
 
   const {
     messages,
@@ -46,9 +51,11 @@ export default function App() {
     }
   }
 
-  const handleSaveSettings = (name) => {
+  const handleSaveSettings = (name, color) => {
     setUserName(name)
+    setAccentColor(color)
     localStorage.setItem('study_userName', name)
+    localStorage.setItem('study_accentColor', color)
     setIsSettingsOpen(false)
   }
 
@@ -65,7 +72,7 @@ export default function App() {
       {/* ── Header ── */}
       <header className="app-header">
         <div className="header-left">
-          <h1 className="app-title">{activeName}</h1>
+          <h1 className="app-title">Nota</h1>
           <span className="app-subtitle">Study AI</span>
         </div>
         <div className="header-right" style={{ display: 'flex', gap: '8px' }}>
@@ -85,7 +92,7 @@ export default function App() {
 
       {/* ── Chat Area ── */}
       <main className="chat-area">
-        <ChatWindow messages={messages} isLoading={isLoading} />
+        <ChatWindow messages={messages} isLoading={isLoading} userName={activeName} />
       </main>
 
       {/* ── Error banner ── */}
@@ -154,6 +161,7 @@ export default function App() {
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
         currentName={userName}
+        currentColor={accentColor}
         onSave={handleSaveSettings}
       />
     </div>

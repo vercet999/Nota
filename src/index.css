@@ -1,7 +1,7 @@
 /* ─── index.css ─────────────────────────────────────────────────────────────
    Adoma Study AI — Editorial Dark Theme
    Fonts: Playfair Display (headings) + DM Sans (body)
-   Palette: deep charcoal + warm amber + soft cream
+   Palette: deep charcoal + warm accent + soft cream
    ─────────────────────────────────────────────────────────────────────────── */
 
 /* ── CSS Variables ── */
@@ -11,16 +11,16 @@
   --bg-raised: #252220;
   --bg-input: #2a2724;
 
-  --amber: #e8a030;
-  --amber-dim: #b07a22;
-  --amber-glow: rgba(232, 160, 48, 0.12);
+  --accent: #e8a030;
+  --accent-dim: color-mix(in srgb, var(--accent) 76%, black);
+  --accent-glow: color-mix(in srgb, var(--accent) 12%, transparent);
+  --border-accent: color-mix(in srgb, var(--accent) 25%, transparent);
 
   --text-primary: #f0ece4;
   --text-secondary: #a09890;
   --text-muted: #6a6460;
 
   --border: rgba(240, 236, 228, 0.08);
-  --border-amber: rgba(232, 160, 48, 0.25);
 
   --mode-exam: #4a9eff;
   --mode-simple: #5ec97a;
@@ -83,7 +83,7 @@ body {
   font-family: var(--font-display);
   font-size: 22px;
   font-weight: 600;
-  color: var(--amber);
+  color: var(--accent);
   letter-spacing: -0.3px;
 }
 
@@ -107,8 +107,8 @@ body {
 }
 
 .clear-btn:hover {
-  border-color: var(--amber-dim);
-  color: var(--amber);
+  border-color: var(--accent-dim);
+  color: var(--accent);
 }
 
 /* ── Chat Area ── */
@@ -148,8 +148,8 @@ body {
 
 .message-bubble.user {
   align-self: flex-end;
-  background: var(--amber-glow);
-  border: 1px solid var(--border-amber);
+  background: var(--accent-glow);
+  border: 1px solid var(--border-accent);
   color: var(--text-primary);
 }
 
@@ -163,8 +163,8 @@ body {
 
 .message-bubble.welcome {
   max-width: 100%;
-  background: linear-gradient(135deg, var(--bg-surface) 0%, rgba(232,160,48,0.05) 100%);
-  border-color: var(--border-amber);
+  background: linear-gradient(135deg, var(--bg-surface) 0%, color-mix(in srgb, var(--accent) 5%, transparent) 100%);
+  border-color: var(--border-accent);
 }
 
 .user-text { margin: 0; }
@@ -172,7 +172,7 @@ body {
 /* Markdown content inside assistant bubbles */
 .assistant-text p { margin-bottom: 10px; }
 .assistant-text p:last-child { margin-bottom: 0; }
-.assistant-text strong { color: var(--amber); font-weight: 500; }
+.assistant-text strong { color: var(--accent); font-weight: 500; }
 .assistant-text ul, .assistant-text ol { padding-left: 20px; margin-bottom: 10px; }
 .assistant-text li { margin-bottom: 4px; }
 .assistant-text code {
@@ -184,7 +184,7 @@ body {
 }
 .assistant-text h1, .assistant-text h2, .assistant-text h3 {
   font-family: var(--font-display);
-  color: var(--amber);
+  color: var(--accent);
   margin: 16px 0 8px;
 }
 
@@ -204,7 +204,7 @@ body {
 .typing-dots span {
   width: 6px;
   height: 6px;
-  background: var(--amber-dim);
+  background: var(--accent-dim);
   border-radius: 50%;
   animation: dot-bounce 1.2s infinite;
 }
@@ -281,14 +281,14 @@ body {
 }
 
 .mode-pill:hover {
-  border-color: var(--amber-dim);
+  border-color: var(--accent-dim);
   color: var(--text-primary);
 }
 
 .mode-pill.active {
-  background: var(--amber-glow);
-  border-color: var(--amber);
-  color: var(--amber);
+  background: var(--accent-glow);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .mode-pill.active.mode-exam { border-color: var(--mode-exam); color: var(--mode-exam); background: rgba(74,158,255,0.08); }
@@ -313,14 +313,14 @@ body {
 }
 
 .file-upload:hover, .file-upload.dragging {
-  border-color: var(--amber-dim);
+  border-color: var(--accent-dim);
   color: var(--text-secondary);
 }
 
 .file-upload.has-file {
   border-style: solid;
-  border-color: var(--border-amber);
-  color: var(--amber);
+  border-color: var(--border-accent);
+  color: var(--accent);
 }
 
 .file-loaded {
@@ -337,10 +337,10 @@ body {
 
 .file-status {
   font-size: 11px;
-  background: var(--amber-glow);
+  background: var(--accent-glow);
   padding: 2px 7px;
   border-radius: 10px;
-  color: var(--amber);
+  color: var(--accent);
 }
 
 .file-prompt {
@@ -374,7 +374,7 @@ body {
 }
 
 .quick-prompt-btn:hover:not(:disabled) {
-  border-color: var(--amber-dim);
+  border-color: var(--accent-dim);
   color: var(--text-primary);
 }
 
@@ -407,7 +407,7 @@ body {
 .message-input::placeholder { color: var(--text-muted); }
 
 .message-input:focus {
-  border-color: var(--amber-dim);
+  border-color: var(--accent-dim);
 }
 
 .message-input:disabled { opacity: 0.5; }
@@ -416,7 +416,7 @@ body {
   width: 44px;
   height: 44px;
   border-radius: var(--radius-sm);
-  background: var(--amber);
+  background: var(--accent);
   border: none;
   color: var(--bg-base);
   cursor: pointer;
@@ -480,7 +480,7 @@ body {
 .modal-header h2 {
   font-family: var(--font-display);
   font-size: 20px;
-  color: var(--amber);
+  color: var(--accent);
   margin: 0;
 }
 
@@ -523,7 +523,26 @@ body {
 }
 
 .settings-input:focus {
-  border-color: var(--amber-dim);
+  border-color: var(--accent-dim);
+}
+
+.color-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.15s;
+}
+
+.color-swatch:hover {
+  transform: scale(1.1);
+}
+
+.color-swatch.selected {
+  border-color: var(--text-primary);
+  transform: scale(1.1);
+  box-shadow: 0 0 0 2px var(--bg-surface), 0 0 0 4px var(--text-primary);
 }
 
 .modal-actions {
@@ -549,7 +568,7 @@ body {
 }
 
 .save-btn {
-  background: var(--amber);
+  background: var(--accent);
   border: none;
   color: var(--bg-base);
   padding: 8px 16px;
