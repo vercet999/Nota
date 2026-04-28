@@ -13,6 +13,7 @@ export default function App() {
   const [userName, setUserName] = useState(() => localStorage.getItem('study_userName') || '')
   const [accentColor, setAccentColor] = useState(() => localStorage.getItem('study_accentColor') || '#e8a030')
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [showActionMenu, setShowActionMenu] = useState(false)
 
   const activeName = userName.trim() || 'Royalty'
 
@@ -39,6 +40,7 @@ export default function App() {
     if (!inputText.trim() || isLoading) return
     const text = inputText
     setInputText('')
+    setShowActionMenu(false)
     textareaRef.current?.focus()
     await sendUserMessage(text, activeName)
   }
@@ -102,35 +104,52 @@ export default function App() {
         </div>
       )}
 
-      {/* ── Controls (mode + upload) ── */}
-      <div className="controls-bar">
-        <ModeSelector activeMode={mode} onModeChange={setMode} />
-        <FileUpload
-          onFileUpload={handleFileUpload}
-          uploadedFileName={uploadedFileName}
-          isLoading={isLoading}
-        />
-      </div>
-
-      {/* ── Quick Prompts ── */}
-      <div className="quick-prompts">
-        {QUICK_PROMPTS.map((qp) => (
-          <button
-            key={qp.label}
-            className="quick-prompt-btn"
-            onClick={() => {
-              setInputText(qp.text)
-              textareaRef.current?.focus()
-            }}
-            disabled={isLoading}
-          >
-            {qp.label}
-          </button>
-        ))}
-      </div>
-
       {/* ── Input Area ── */}
-      <div className="input-area">
+      <div className="input-area" style={{ position: 'relative' }}>
+        
+        {/* Action Menu Popover */}
+        {showActionMenu && (
+          <div className="action-menu-popover">
+            <div className="controls-bar" style={{ borderTop: 'none', padding: 0 }}>
+              <ModeSelector activeMode={mode} onModeChange={setMode} />
+              <FileUpload
+                onFileUpload={(file) => {
+                  handleFileUpload(file)
+                  setShowActionMenu(false)
+                }}
+                uploadedFileName={uploadedFileName}
+                isLoading={isLoading}
+              />
+            </div>
+            
+            <div className="quick-prompts" style={{ padding: 0 }}>
+              {QUICK_PROMPTS.map((qp) => (
+                <button
+                  key={qp.label}
+                  className="quick-prompt-btn"
+                  onClick={() => {
+                    setInputText(qp.text)
+                    setShowActionMenu(false)
+                    textareaRef.current?.focus()
+                  }}
+                  disabled={isLoading}
+                >
+                  {qp.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <button 
+          className={`plus-btn ${showActionMenu ? 'active' : ''}`}
+          onClick={() => setShowActionMenu(!showActionMenu)}
+          disabled={isLoading}
+          aria-label="Toggle actions"
+        >
+          +
+        </button>
+
         <textarea
           ref={textareaRef}
           className="message-input"
@@ -139,7 +158,8 @@ export default function App() {
           onChange={(e) => setInputText(e.target.value)}
           onKeyDown={handleKeyDown}
           disabled={isLoading}
-          rows={2}
+          rows={1}
+          style={{ minHeight: '44px' }}
         />
         <button
           className="send-btn"

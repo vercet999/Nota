@@ -583,6 +583,73 @@ body {
   background: #f0b040;
 }
 
+/* ── Typewriter Welcome ── */
+.typewriter-container {
+  display: flex;
+  align-items: center;
+  min-height: 28px;
+}
+
+.typewriter-cursor {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 2px;
+  animation: blink 1s step-end infinite;
+  vertical-align: middle;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* ── Action Menu Button & Popover ── */
+.plus-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s;
+  font-size: 24px;
+}
+
+.plus-btn:hover {
+  border-color: var(--accent-dim);
+  color: var(--text-primary);
+}
+
+.plus-btn.active {
+  background: var(--accent);
+  color: var(--bg-base);
+  border-color: var(--accent);
+  transform: rotate(45deg);
+}
+
+.action-menu-popover {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 24px;
+  right: 24px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  z-index: 50;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: fadeUp 0.15s ease-out;
+}
+
 @media (max-width: 600px) {
   .app-header { padding: 12px 16px; }
   .chat-window { padding: 16px; }
