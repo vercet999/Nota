@@ -9,7 +9,12 @@ import { extractTextFromFile } from '../utils/pdfExtract'
 
 export function useChat() {
   const [messages, setMessages] = useState([])           // [{role, content}]
-  const [mode, setMode] = useState('normal')             // current study mode
+  const [mode, setModeState] = useState(() => localStorage.getItem('study_mode') || 'normal')
+  
+  const setMode = useCallback((newMode) => {
+    setModeState(newMode)
+    localStorage.setItem('study_mode', newMode)
+  }, [])             // current study mode
   const [isLoading, setIsLoading] = useState(false)      // waiting for API
   const [error, setError] = useState(null)               // error string or null
   const [documentContext, setDocumentContext] = useState('') // extracted text from upload

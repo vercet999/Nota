@@ -58,8 +58,6 @@ body {
   height: 100vh;
   max-width: 820px;
   margin: 0 auto;
-  border-left: 1px solid var(--border);
-  border-right: 1px solid var(--border);
 }
 
 /* ── Header ── */
@@ -104,6 +102,7 @@ body {
   font-size: 13px;
   cursor: pointer;
   transition: all 0.15s;
+  animation: fadeIn 0.3s ease-out;
 }
 
 .clear-btn:hover {
@@ -323,8 +322,13 @@ body {
   color: var(--accent);
 }
 
+.file-upload.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .file-loaded {
-  display: flex;
   align-items: center;
   gap: 6px;
 }
@@ -621,9 +625,14 @@ body {
   font-size: 24px;
 }
 
-.plus-btn:hover {
+.plus-btn:hover:not(:disabled) {
   border-color: var(--accent-dim);
   color: var(--text-primary);
+}
+
+.plus-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .plus-btn.active {

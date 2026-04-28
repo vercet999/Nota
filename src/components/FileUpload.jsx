@@ -27,7 +27,7 @@ export function FileUpload({ onFileUpload, uploadedFileName, isLoading }) {
 
   return (
     <div
-      className={`file-upload ${isDragging ? 'dragging' : ''} ${uploadedFileName ? 'has-file' : ''}`}
+      className={`file-upload ${isDragging ? 'dragging' : ''} ${uploadedFileName ? 'has-file' : ''} ${isLoading ? 'disabled' : ''}`}
       onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
       onDragLeave={() => setIsDragging(false)}
       onDrop={handleDrop}
