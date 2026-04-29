@@ -1,12 +1,18 @@
-# Adoma — Study AI 📚
+# Nota Study AI
 
-A personal AI study assistant built for Adoma, Communication & Journalism student at UniMAC.
+A personal AI study assistant built for focused study sessions, note review, and exam preparation.
 
-## Features (Starter)
-- 💬 Chat with context from uploaded notes
-- 📄 Upload PDFs or .txt notes — AI reads them with you
-- 🎯 4 Study Modes: Normal, Simplify, Exam Mode, Journalism Coach
-- ⚡ Quick prompts: Summarise, Practice Questions, Key Definitions, Daily Guide rewrite
+## Features
+- Chat with Claude using context from uploaded notes
+- Upload PDF or `.txt` files so the assistant can answer from your material
+- Choose between three study modes:
+  - Normal: clear, thorough answers
+  - Simplify: simple explanations with everyday examples
+  - Exam Mode: structured, exam-ready answers
+- Switch between Claude Haiku and Claude Sonnet models
+- Use quick prompts for summaries, practice questions, key definitions, and Daily Guide-style rewrites
+- Search chat history and bookmark useful messages
+- Personalize the app with a saved name and accent color
 
 ## Setup
 
@@ -36,8 +42,8 @@ npm run build
 ## Deploy to Vercel
 1. Push to GitHub
 2. Connect repo on vercel.com
-3. Add `VITE_CLAUDE_API_KEY` in Vercel → Settings → Environment Variables
+3. Add `VITE_CLAUDE_API_KEY` in Vercel > Settings > Environment Variables
 4. Deploy
 
-## Next steps
-See `PROMPTS.md` for AI Studio prompts to add: Practice Quiz, Flashcards, Summary Tool, Pomodoro timer.
+## Troubleshooting
+- If Vercel still says the API key is missing after you add `VITE_CLAUDE_API_KEY`, trigger a new deployment. In this app, Vite reads `import.meta.env.VITE_CLAUDE_API_KEY` at build time, so the value will not appear in an already deployed build.

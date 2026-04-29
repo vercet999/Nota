@@ -62,10 +62,12 @@ Be precise. Be scoreable. Every word should be worth marks.`
  * @returns {string} - Claude's response text
  */
 export async function sendMessage(messages, mode = 'normal', documentContext = '', userName = 'Adoma', modelId = DEFAULT_MODEL) {
-  const apiKey = import.meta.env.VITE_CLAUDE_API_KEY
+  const apiKey = import.meta.env.VITE_CLAUDE_API_KEY?.trim()
 
   if (!apiKey || apiKey === 'your_claude_api_key_here') {
-    throw new Error('No API key found. Add your Claude API key to the .env file.')
+    throw new Error(
+      'No API key found. Set VITE_CLAUDE_API_KEY locally in .env, or in Vercel Project Settings > Environment Variables, then redeploy so Vite can include it in the build.'
+    )
   }
 
   const prompts = getSystemPrompts(userName);
