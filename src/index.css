@@ -153,6 +153,20 @@ body {
   transition: opacity 0.2s;
 }
 
+.profile-btn-small {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--text-primary);
+  color: var(--bg-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
 .profile-btn:hover {
   opacity: 0.8;
 }
@@ -543,6 +557,7 @@ body {
 .mode-selector {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   flex: 1;
   flex-wrap: wrap;
@@ -658,6 +673,7 @@ body {
 /* ── Quick Prompts ── */
 .quick-prompts {
   display: flex;
+  justify-content: center;
   gap: 6px;
   padding: 0 24px 10px;
   flex-wrap: wrap;
@@ -937,6 +953,11 @@ body {
   margin-left: 2px;
   animation: blink 1s step-end infinite;
   vertical-align: middle;
+}
+
+.favicon-cursor img {
+  width: 1em;
+  height: 1em;
 }
 
 @keyframes blink {
