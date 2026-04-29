@@ -4,7 +4,12 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 const CLAUDE_API_URL = 'https://api.anthropic.com/v1/messages'
-const MODEL = 'claude-opus-4-5'
+
+export const MODELS = {
+  haiku: { id: 'claude-haiku-4-5-20251001', label: 'Haiku', badge: 'Fast' },
+  sonnet: { id: 'claude-sonnet-4-6', label: 'Sonnet', badge: 'Deep' }
+}
+export const DEFAULT_MODEL = MODELS.haiku.id
 
 // ── System prompts per study mode ──────────────────────────────────────────
 
@@ -65,9 +70,10 @@ ${userName} is learning by doing. Help them grow fast.`
  * @param {string} mode - 'normal' | 'simple' | 'exam' | 'journalism'
  * @param {string} documentContext - Extracted text from uploaded PDF/file
  * @param {string} userName - The name of the user
+ * @param {string} modelId - The ID of the Claude model to use
  * @returns {string} - Claude's response text
  */
-export async function sendMessage(messages, mode = 'normal', documentContext = '', userName = 'Adoma') {
+export async function sendMessage(messages, mode = 'normal', documentContext = '', userName = 'Adoma', modelId = DEFAULT_MODEL) {
   const apiKey = import.meta.env.VITE_CLAUDE_API_KEY
 
   if (!apiKey || apiKey === 'your_claude_api_key_here') {
@@ -91,7 +97,7 @@ export async function sendMessage(messages, mode = 'normal', documentContext = '
       'anthropic-dangerous-direct-browser-access': 'true'
     },
     body: JSON.stringify({
-      model: MODEL,
+      model: modelId,
       max_tokens: 1024,
       system: systemPrompt,
       messages: messages

@@ -3,6 +3,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useRef } from 'react'
+import { FileText } from 'lucide-react'
 
 export function FileUpload({ onFileUpload, uploadedFileName, isLoading }) {
   const [isDragging, setIsDragging] = useState(false)
@@ -43,7 +44,7 @@ export function FileUpload({ onFileUpload, uploadedFileName, isLoading }) {
 
       {uploadedFileName ? (
         <div className="file-loaded">
-          <span className="file-icon">📄</span>
+          <span className="file-icon"><FileText size={16} /></span>
           <span className="file-name">{uploadedFileName}</span>
           <span className="file-status">loaded</span>
         </div>

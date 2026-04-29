@@ -1,11 +1,7 @@
 import { useState, useEffect } from 'react';
 
 const getStatements = (userName) => [
-  `Hi ${userName} 👋 I'm Nota, your personal study assistant.`,
-  `I can answer questions from your notes or any topic you're studying.`,
-  `Upload a PDF or .txt of your notes and I'll study them with you.`,
-  `Click the + icon to switch modes and access quick actions.`,
-  `What are you working on today?`
+  `Back at it, ${userName}`
 ];
 
 export function TypewriterWelcome({ userName }) {
@@ -19,18 +15,14 @@ export function TypewriterWelcome({ userName }) {
     let timeout;
 
     if (isWaiting) {
-      timeout = setTimeout(() => {
-        setIsWaiting(false);
-        setDisplayText('');
-        setStatementIndex((prev) => (prev + 1) % statements.length);
-      }, 5000); // Wait 5 seconds
-      return () => clearTimeout(timeout);
+      // Don't cycle, just stay there since it's only one statement
+      return;
     }
 
     if (displayText.length < currentStatement.length) {
       timeout = setTimeout(() => {
         setDisplayText(currentStatement.slice(0, displayText.length + 1));
-      }, 50); // Typing speed
+      }, 70); // Typing speed
     } else {
       setIsWaiting(true);
     }
@@ -39,13 +31,9 @@ export function TypewriterWelcome({ userName }) {
   }, [displayText, isWaiting, statementIndex, userName]);
 
   return (
-    <div className="message-bubble assistant welcome">
-      <div className="typewriter-container">
-        <span className="typewriter-text">{displayText}</span>
-        <span className="typewriter-cursor">
-          <img src="/favicon.svg" alt="cursor" width="16" height="16" />
-        </span>
-      </div>
+    <div className="typewriter-container typewriter-large">
+      <span className="typewriter-text">{displayText}</span>
+      <span className="typewriter-cursor">|</span>
     </div>
   );
 }

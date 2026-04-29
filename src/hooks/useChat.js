@@ -4,12 +4,13 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useCallback } from 'react'
-import { sendMessage } from '../utils/claudeApi'
+import { sendMessage, DEFAULT_MODEL } from '../utils/claudeApi'
 import { extractTextFromFile } from '../utils/pdfExtract'
 
 export function useChat() {
   const [messages, setMessages] = useState([])           // [{role, content}]
   const [mode, setModeState] = useState(() => localStorage.getItem('study_mode') || 'normal')
+  const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL) // default model
   
   const setMode = useCallback((newMode) => {
     setModeState(newMode)
@@ -24,7 +25,7 @@ export function useChat() {
   const sendUserMessage = useCallback(async (text, userNameForApi) => {
     if (!text.trim() || isLoading) return
 
-    const userMessage = { role: 'user', content: text }
+    const userMessage = { id: crypto.randomUUID(), role: 'user', content: text }
     const updatedMessages = [...messages, userMessage]
 
     setMessages(updatedMessages)
@@ -32,14 +33,14 @@ export function useChat() {
     setError(null)
 
     try {
-      const reply = await sendMessage(updatedMessages, mode, documentContext, userNameForApi)
-      setMessages(prev => [...prev, { role: 'assistant', content: reply }])
+      const reply = await sendMessage(updatedMessages, mode, documentContext, userNameForApi, selectedModel)
+      setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'assistant', content: reply }])
     } catch (err) {
       setError(err.message)
     } finally {
       setIsLoading(false)
     }
-  }, [messages, mode, documentContext, isLoading])
+  }, [messages, mode, documentContext, isLoading, selectedModel])
 
   // ── Handle file upload ─────────────────────────────────────────────────────
   const handleFileUpload = useCallback(async (file) => {
@@ -54,8 +55,9 @@ export function useChat() {
       setMessages(prev => [
         ...prev,
         {
+          id: crypto.randomUUID(),
           role: 'assistant',
-          content: `📄 I've loaded **${file.name}**. I can now answer questions based on its content. What would you like to know?`
+          content: `I've loaded **${file.name}**. I can now answer questions based on its content. What would you like to know?`
         }
       ])
     } catch (err) {
@@ -77,6 +79,8 @@ export function useChat() {
     messages,
     mode,
     setMode,
+    selectedModel,
+    setSelectedModel,
     isLoading,
     error,
     uploadedFileName,
