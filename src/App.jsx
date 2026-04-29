@@ -201,11 +201,27 @@ export default function App() {
                 </div>
                 <div className="welcome-input-container">
                   <div className="welcome-input-border">
-                    <Plus 
-                      size={20} 
-                      className="welcome-plus-btn" 
-                      onClick={() => setShowActionMenu(!showActionMenu)} 
-                    />
+                    <div className="custom-dropdown-container" style={{ display: 'flex', alignItems: 'center' }}>
+                      <Plus 
+                        size={20} 
+                        className="welcome-plus-btn" 
+                        onClick={() => setShowActionMenu(!showActionMenu)} 
+                        style={showActionMenu ? { transform: 'rotate(45deg)', transition: 'transform 0.2s', color: 'var(--accent)' } : { transition: 'transform 0.2s' }}
+                      />
+                      {showActionMenu && (
+                        <div className="custom-dropdown-menu" style={{ left: 0, bottom: 'calc(100% + 10px)', padding: '12px', minWidth: '240px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                          <ModeSelector activeMode={mode} onModeChange={setMode} />
+                          <FileUpload
+                            onFileUpload={(file) => {
+                              handleFileUpload(file)
+                              setShowActionMenu(false)
+                            }}
+                            uploadedFileName={uploadedFileName}
+                            isLoading={isLoading}
+                          />
+                        </div>
+                      )}
+                    </div>
                     <textarea
                       ref={textareaRef}
                       className="welcome-textarea"
@@ -252,21 +268,26 @@ export default function App() {
                       </button>
                     </div>
                   </div>
-                  {showActionMenu && (
-                    <div className="welcome-action-menu-popover">
-                       <FileUpload
-                        onFileUpload={(file) => {
-                          handleFileUpload(file)
-                          setShowActionMenu(false)
-                        }}
-                        uploadedFileName={uploadedFileName}
-                        isLoading={isLoading}
-                      />
-                    </div>
-                  )}
                 </div>
                 <div className="welcome-controls-outside">
-                  <ModeSelector activeMode={mode} onModeChange={setMode} isWelcome={true} />
+                  <div className="quick-prompts" style={{ padding: 0 }}>
+                    {QUICK_PROMPTS.map((qp) => (
+                      <button
+                        key={qp.label}
+                        className="quick-prompt-btn"
+                        onClick={() => {
+                          setInputText(qp.text)
+                          setShowActionMenu(false)
+                          textareaRef.current?.focus()
+                        }}
+                        disabled={isLoading}
+                        style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                      >
+                        <span style={{ opacity: 0.7 }}>{qp.icon}</span>
+                        {qp.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </main>
             </div>
@@ -307,57 +328,55 @@ export default function App() {
                 </div>
               )}
 
+              {/* ── Quick Prompts ── */}
+              <div className="quick-prompts" style={{ padding: '0 24px 12px' }}>
+                {QUICK_PROMPTS.map((qp) => (
+                  <button
+                    key={qp.label}
+                    className="quick-prompt-btn"
+                    onClick={() => {
+                      setInputText(qp.text)
+                      setShowActionMenu(false)
+                      textareaRef.current?.focus()
+                    }}
+                    disabled={isLoading}
+                    style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                  >
+                    <span style={{ opacity: 0.7 }}>{qp.icon}</span>
+                    {qp.label}
+                  </button>
+                ))}
+              </div>
+
               {/* ── Input Area ── */}
               <div className="input-area" style={{ position: 'relative' }}>
-                {/* Action Menu Popover */}
-                {showActionMenu && (
-                  <div className="action-menu-popover">
-                    <div className="controls-bar" style={{ borderTop: 'none', padding: 0 }}>
-                      <ModeSelector activeMode={mode} onModeChange={setMode} />
-                      <FileUpload
-                        onFileUpload={(file) => {
-                          handleFileUpload(file)
-                          setShowActionMenu(false)
-                        }}
-                        uploadedFileName={uploadedFileName}
-                        isLoading={isLoading}
-                      />
-                    </div>
-                    
-                    <div className="quick-prompts" style={{ padding: 0 }}>
-                      {QUICK_PROMPTS.map((qp) => (
-                        <button
-                          key={qp.label}
-                          className="quick-prompt-btn"
-                          onClick={() => {
-                            setInputText(qp.text)
-                            setShowActionMenu(false)
-                            textareaRef.current?.focus()
-                          }}
-                          disabled={isLoading}
-                          style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-                        >
-                          <span style={{ opacity: 0.7 }}>{qp.icon}</span>
-                          {qp.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
                 <div style={{ position: 'relative', flex: 1, display: 'flex', alignItems: 'center' }}>
-                  <button 
-                    className={`plus-btn ${showActionMenu ? 'active' : ''}`}
-                    onClick={() => setShowActionMenu(!showActionMenu)}
-                    disabled={isLoading}
-                    aria-label="Toggle actions"
-                    style={{ position: 'absolute', left: '8px', zIndex: 10 }}
-                  >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="12" y1="5" x2="12" y2="19"></line>
-                      <line x1="5" y1="12" x2="19" y2="12"></line>
-                    </svg>
-                  </button>
+                  <div className="custom-dropdown-container" style={{ position: 'absolute', left: '8px', zIndex: 10 }}>
+                    <button 
+                      className={`plus-btn ${showActionMenu ? 'active' : ''}`}
+                      onClick={() => setShowActionMenu(!showActionMenu)}
+                      disabled={isLoading}
+                      aria-label="Toggle actions"
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                      </svg>
+                    </button>
+                    {showActionMenu && (
+                      <div className="custom-dropdown-menu" style={{ left: 0, bottom: 'calc(100% + 10px)', padding: '12px', minWidth: '240px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <ModeSelector activeMode={mode} onModeChange={setMode} />
+                        <FileUpload
+                          onFileUpload={(file) => {
+                            handleFileUpload(file)
+                            setShowActionMenu(false)
+                          }}
+                          uploadedFileName={uploadedFileName}
+                          isLoading={isLoading}
+                        />
+                      </div>
+                    )}
+                  </div>
 
                   <textarea
                     ref={textareaRef}
