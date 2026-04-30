@@ -62,12 +62,10 @@ Be precise. Be scoreable. Every word should be worth marks.`
  * @returns {string} - Claude's response text
  */
 export async function sendMessage(messages, mode = 'normal', documentContext = '', userName = 'Adoma', modelId = DEFAULT_MODEL) {
-  const apiKey = import.meta.env.VITE_CLAUDE_API_KEY?.trim()
+  const apiKey = import.meta.env.VITE_CLAUDE_API_KEY
 
   if (!apiKey || apiKey === 'your_claude_api_key_here') {
-    throw new Error(
-      'No API key found. Set VITE_CLAUDE_API_KEY locally in .env, or in Vercel Project Settings > Environment Variables, then redeploy so Vite can include it in the build.'
-    )
+    throw new Error('No API key found. Add your Claude API key to the .env file.')
   }
 
   const prompts = getSystemPrompts(userName);
@@ -90,7 +88,7 @@ export async function sendMessage(messages, mode = 'normal', documentContext = '
       model: modelId,
       max_tokens: 1024,
       system: systemPrompt,
-      messages: messages
+      messages: messages.map(({ role, content }) => ({ role, content }))
     })
   })
 
@@ -101,4 +99,54 @@ export async function sendMessage(messages, mode = 'normal', documentContext = '
 
   const data = await response.json()
   return data.content[0].text
+}
+
+export async function generateFlashcards(documentContext, modelId = DEFAULT_MODEL) {
+  const apiKey = import.meta.env.VITE_CLAUDE_API_KEY
+  if (!apiKey || apiKey === 'your_claude_api_key_here') {
+    throw new Error('No API key found. Add your Claude API key to the .env file.')
+  }
+
+  const systemPrompt = `You are an expert study assistant. Your task is to extract key concepts and definitions from the provided notes and return them as an array of flashcards in strictly valid JSON format.
+  
+Output format MUST be JSON like this, with NO markdown formatting, NO \`\`\`json blocks, and NO extra text:
+[
+  { "term": "...", "definition": "..." },
+  { "term": "...", "definition": "..." }
+]`;
+
+  const inputMessage = documentContext 
+    ? `Here are the uploaded notes to generate flashcards from:\n\n${documentContext}\n\nGenerate at least 5-10 flashcards based on the key concepts.` 
+    : "I don't have notes uploaded right now. Create 5 general flashcards on Critical Thinking.";
+
+  const response = await fetch(CLAUDE_API_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: modelId,
+      max_tokens: 1024,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: inputMessage }]
+    })
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error?.message || 'API call failed. Check your key and try again.');
+  }
+
+  const data = await response.json();
+  const text = data.content[0].text.trim();
+  
+  try {
+    const cleaned = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    return JSON.parse(cleaned);
+  } catch (error) {
+    throw new Error('Failed to parse generated flashcards. Please try again.');
+  }
 }

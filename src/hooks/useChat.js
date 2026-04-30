@@ -20,6 +20,7 @@ export function useChat() {
   const [error, setError] = useState(null)               // error string or null
   const [documentContext, setDocumentContext] = useState('') // extracted text from upload
   const [uploadedFileName, setUploadedFileName] = useState('') // display name
+  const [uploadedFiles, setUploadedFiles] = useState([]) // [{ id, name, text }]
 
   // ── Send a message ─────────────────────────────────────────────────────────
   const sendUserMessage = useCallback(async (text, userNameForApi) => {
@@ -48,6 +49,8 @@ export function useChat() {
     setError(null)
     try {
       const text = await extractTextFromFile(file)
+      const newFile = { id: crypto.randomUUID(), name: file.name, text }
+      setUploadedFiles(prev => [...prev, newFile])
       setDocumentContext(text)
       setUploadedFileName(file.name)
 
@@ -72,6 +75,7 @@ export function useChat() {
     setMessages([])
     setDocumentContext('')
     setUploadedFileName('')
+    setUploadedFiles([])
     setError(null)
   }, [])
 
@@ -84,6 +88,7 @@ export function useChat() {
     isLoading,
     error,
     uploadedFileName,
+    uploadedFiles,
     documentContext,
     sendUserMessage,
     handleFileUpload,

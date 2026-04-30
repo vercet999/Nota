@@ -3,19 +3,25 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useRef, useEffect } from 'react'
-import { PanelLeft, Plus, Search, FolderDown, GraduationCap, Send, ChevronDown, AlertTriangle, Zap, Brain, FileText, HelpCircle, Key, Newspaper } from 'lucide-react'
+import { PanelLeft, Plus, Search, FolderDown, GraduationCap, Send, ChevronDown, AlertTriangle, Zap, Brain, FileText, HelpCircle, Key, Newspaper, Library } from 'lucide-react'
 import { useChat } from './hooks/useChat'
 import { ChatWindow } from './components/ChatWindow'
 import { ModeSelector } from './components/ModeSelector'
 import { FileUpload } from './components/FileUpload'
 import { SettingsModal } from './components/SettingsModal'
 import { TypewriterWelcome } from './components/TypewriterWelcome'
+import { FlashcardsView } from './components/FlashcardsView'
+import { SearchModal } from './components/SearchModal'
+import { UploadedFilesModal } from './components/UploadedFilesModal'
 import { MODELS } from './utils/claudeApi'
 
 export default function App() {
   const [userName, setUserName] = useState(() => localStorage.getItem('study_userName') || '')
   const [accentColor, setAccentColor] = useState(() => localStorage.getItem('study_accentColor') || '#e8a030')
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [isFilesModalOpen, setIsFilesModalOpen] = useState(false)
+  const [isFlashcardsOpen, setIsFlashcardsOpen] = useState(false)
   const [showActionMenu, setShowActionMenu] = useState(false)
   const [showModelDropdown, setShowModelDropdown] = useState(false)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
@@ -57,6 +63,8 @@ export default function App() {
     isLoading,
     error,
     uploadedFileName,
+    uploadedFiles,
+    documentContext,
     sendUserMessage,
     handleFileUpload,
     clearSession
@@ -102,87 +110,37 @@ export default function App() {
     <div className="app-layout">
       {/* ── Expandable Left Sidebar ── */}
       <aside className={`left-sidebar ${isSidebarOpen ? 'expanded' : ''}`}>
-        <div className={`sidebar-thin-col ${isSidebarOpen ? 'hide' : ''}`}>
+        <div className="sidebar-content-wrapper">
           <div className="sidebar-top">
-            <button className="icon-btn" onClick={() => setIsSidebarOpen(!isSidebarOpen)} title="Toggle Sidebar">
-              <PanelLeft size={20} strokeWidth={1.5} />
+            <button className="sidebar-item" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+              <span className="sidebar-item-icon"><PanelLeft size={20} strokeWidth={1.5} /></span>
+              <span className="sidebar-item-label">{isSidebarOpen ? 'Close Sidebar' : 'Expand Sidebar'}</span>
             </button>
-            <button className="icon-btn" onClick={clearSession} title="New Session">
-              <Plus size={20} strokeWidth={1.5} />
+            <button className="sidebar-item" onClick={clearSession}>
+              <span className="sidebar-item-icon"><Plus size={20} strokeWidth={1.5} /></span>
+              <span className="sidebar-item-label">New Session</span>
             </button>
-            <button className="icon-btn" onClick={() => setIsSidebarOpen(true)} title="Search">
-              <Search size={20} strokeWidth={1.5} />
+            <button className="sidebar-item" onClick={() => setIsSearchOpen(true)}>
+              <span className="sidebar-item-icon"><Search size={20} strokeWidth={1.5} /></span>
+              <span className="sidebar-item-label">Search</span>
+            </button>
+            <button className="sidebar-item" onClick={() => setIsFlashcardsOpen(true)}>
+              <span className="sidebar-item-icon"><Library size={20} strokeWidth={1.5} /></span>
+              <span className="sidebar-item-label">Flashcards</span>
+            </button>
+            <button className="sidebar-item" onClick={() => setIsFilesModalOpen(true)} title="Uploaded Files">
+              <span className="sidebar-item-icon"><FolderDown size={20} strokeWidth={1.5} /></span>
+              <span className="sidebar-item-label">Uploaded Files</span>
             </button>
           </div>
           <div className="sidebar-bottom">
-            <button className="icon-btn" title="Uploaded Files">
-              <FolderDown size={20} strokeWidth={1.5} />
-            </button>
-            <button className="profile-btn" onClick={() => setIsSettingsOpen(true)}>
-              {getInitials(activeName)}
-            </button>
-          </div>
-        </div>
-
-        <div className={`sidebar-expanded-content ${!isSidebarOpen ? 'hide' : ''}`}>
-          <div className="sidebar-header">
-            <button className="icon-btn" onClick={() => setIsSidebarOpen(false)} title="Close Sidebar">
-              <PanelLeft size={20} strokeWidth={1.5} />
-            </button>
-            <div className="sidebar-header-actions">
-               <button className="icon-btn" onClick={clearSession} title="New Session">
-                  <Plus size={20} strokeWidth={1.5} />
-               </button>
-               <button className="icon-btn" title="Uploaded Files">
-                  <FolderDown size={20} strokeWidth={1.5} />
-               </button>
-            </div>
-          </div>
-
-          <div className="sidebar-search">
-            <input
-              type="text"
-              className="search-input"
-              placeholder="Search conversation..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <button 
-              className={`bookmark-filter-btn ${showBookmarks ? 'active' : ''}`}
-              onClick={() => setShowBookmarks(!showBookmarks)}
-              title="Toggle bookmarked messages"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill={showBookmarks ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-              </svg>
-            </button>
-          </div>
-
-          <div className="sidebar-history">
-            {messages.filter(m => m.role === 'user').length > 0 && (
-              <div className="sidebar-section-title">Chat History</div>
-            )}
-            {messages.filter(m => m.role === 'user').map(m => (
-              <button 
-                key={m.id} 
-                className="history-anchor" 
-                onClick={() => {
-                  const el = document.getElementById(`msg-${m.id}`);
-                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }}
-                title={m.content}
-              >
-                {m.content}
-              </button>
-            ))}
-          </div>
-
-          <div className="sidebar-footer">
-            <button className="sidebar-settings-btn" onClick={() => setIsSettingsOpen(true)}>
-              <div className="profile-btn-small">
-                 {getInitials(activeName)}
-              </div>
-              <span>{activeName} Settings</span>
+            <button className="sidebar-item" onClick={() => setIsSettingsOpen(true)}>
+              <span className="sidebar-item-icon profile-icon-wrap">
+                <div className="profile-btn-small" style={{width: 28, height: 28, borderRadius: '50%', background: 'var(--text-primary)', color: 'var(--bg-base)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 700}}>
+                  {getInitials(activeName)}
+                </div>
+              </span>
+              <span className="sidebar-item-label">{activeName} Settings</span>
             </button>
           </div>
         </div>
@@ -190,7 +148,14 @@ export default function App() {
 
       <div className="main-content-wrapper">
         <div className="app-container">
-          {messages.length === 0 ? (
+          {isFlashcardsOpen ? (
+            <FlashcardsView
+              onBack={() => setIsFlashcardsOpen(false)}
+              uploadedFiles={uploadedFiles}
+              messages={messages}
+              modelId={selectedModel}
+            />
+          ) : messages.length === 0 ? (
             <div className="welcome-screen">
               <header className="welcome-header">
                 <button className="icon-btn"><GraduationCap size={20} strokeWidth={1.5} /></button>
@@ -293,23 +258,8 @@ export default function App() {
             </div>
           ) : (
             <>
-              {/* ── Header ── */}
-              <header className="app-header">
-                <div className="header-left">
-                  <h1 className="app-title">Nota</h1>
-                  <span className="app-subtitle">Study AI</span>
-                </div>
-                <div className="header-right" style={{ display: 'flex', gap: '8px' }}>
-                  {messages.length > 0 && (
-                    <button className="clear-btn" onClick={clearSession} title="Start a new session">
-                      New Session
-                    </button>
-                  )}
-                </div>
-              </header>
-
               {/* ── Chat Area ── */}
-              <main className="chat-area">
+              <main className="chat-area" style={{ paddingTop: '24px' }}>
                 <ChatWindow 
                   messages={messages} 
                   isLoading={isLoading} 
@@ -327,26 +277,6 @@ export default function App() {
                   <AlertTriangle size={16} /> {error}
                 </div>
               )}
-
-              {/* ── Quick Prompts ── */}
-              <div className="quick-prompts" style={{ padding: '0 24px 12px' }}>
-                {QUICK_PROMPTS.map((qp) => (
-                  <button
-                    key={qp.label}
-                    className="quick-prompt-btn"
-                    onClick={() => {
-                      setInputText(qp.text)
-                      setShowActionMenu(false)
-                      textareaRef.current?.focus()
-                    }}
-                    disabled={isLoading}
-                    style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-                  >
-                    <span style={{ opacity: 0.7 }}>{qp.icon}</span>
-                    {qp.label}
-                  </button>
-                ))}
-              </div>
 
               {/* ── Input Area ── */}
               <div className="input-area" style={{ position: 'relative' }}>
@@ -418,6 +348,22 @@ export default function App() {
         currentName={userName}
         currentColor={accentColor}
         onSave={handleSaveSettings}
+      />
+
+      <SearchModal
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+        messages={messages}
+        onSelectMessage={(id) => {
+          const el = document.getElementById(`msg-${id}`)
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }}
+      />
+
+      <UploadedFilesModal
+        isOpen={isFilesModalOpen}
+        onClose={() => setIsFilesModalOpen(false)}
+        uploadedFiles={uploadedFiles}
       />
     </div>
   )
