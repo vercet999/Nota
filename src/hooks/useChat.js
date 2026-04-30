@@ -4,11 +4,19 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useCallback } from 'react'
-import { sendMessage, DEFAULT_MODEL } from '../utils/claudeApi'
+import { sendMessage, generateSessionTitle, DEFAULT_MODEL } from '../utils/claudeApi'
 import { extractTextFromFile } from '../utils/pdfExtract'
+import {
+  createSession,
+  updateSessionTitle,
+  saveMessage,
+  saveDocument,
+  getSessionMessages,
+} from '../utils/db'
 
 export function useChat() {
   const [messages, setMessages] = useState([])           // [{role, content}]
+  const [sessionId, setSessionId] = useState(null)
   const [mode, setModeState] = useState(() => localStorage.getItem('study_mode') || 'normal')
   const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL) // default model
   
@@ -34,14 +42,34 @@ export function useChat() {
     setError(null)
 
     try {
+      let activeSessionId = sessionId
+
+      if (!activeSessionId) {
+        const session = await createSession(mode, selectedModel)
+        activeSessionId = session.id
+        setSessionId(activeSessionId)
+        await saveMessage(activeSessionId, userMessage.role, userMessage.content)
+
+        try {
+          const title = await generateSessionTitle(text, selectedModel)
+          if (title) await updateSessionTitle(activeSessionId, title)
+        } catch (titleError) {
+          console.warn('Could not generate session title:', titleError)
+        }
+      } else {
+        await saveMessage(activeSessionId, userMessage.role, userMessage.content)
+      }
+
       const reply = await sendMessage(updatedMessages, mode, documentContext, userNameForApi, selectedModel)
-      setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'assistant', content: reply }])
+      const assistantMessage = { id: crypto.randomUUID(), role: 'assistant', content: reply }
+      setMessages(prev => [...prev, assistantMessage])
+      await saveMessage(activeSessionId, assistantMessage.role, assistantMessage.content)
     } catch (err) {
       setError(err.message)
     } finally {
       setIsLoading(false)
     }
-  }, [messages, mode, documentContext, isLoading, selectedModel])
+  }, [messages, mode, documentContext, isLoading, selectedModel, sessionId])
 
   // ── Handle file upload ─────────────────────────────────────────────────────
   const handleFileUpload = useCallback(async (file) => {
@@ -55,16 +83,43 @@ export function useChat() {
       setUploadedFileName(file.name)
 
       // Add a system-style message to the chat so she knows it worked
-      setMessages(prev => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          role: 'assistant',
-          content: `I've loaded **${file.name}**. I can now answer questions based on its content. What would you like to know?`
-        }
-      ])
+      const assistantMessage = {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content: `I've loaded **${file.name}**. I can now answer questions based on its content. What would you like to know?`
+      }
+
+      setMessages(prev => [...prev, assistantMessage])
+
+      if (sessionId) {
+        await saveDocument(sessionId, file.name, text)
+        await saveMessage(sessionId, assistantMessage.role, assistantMessage.content)
+      }
     } catch (err) {
       setError(`Could not read file: ${err.message}`)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [sessionId])
+
+  // ── Load a saved session ──────────────────────────────────────────────────
+  const loadSession = useCallback(async (id) => {
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const savedMessages = await getSessionMessages(id)
+      setMessages(savedMessages.map(message => ({
+        id: message.id,
+        role: message.role,
+        content: message.content
+      })))
+      setSessionId(id)
+      setDocumentContext('')
+      setUploadedFileName('')
+      setUploadedFiles([])
+    } catch (err) {
+      setError(`Could not load session: ${err.message}`)
     } finally {
       setIsLoading(false)
     }
@@ -73,6 +128,7 @@ export function useChat() {
   // ── Clear everything for a fresh session ──────────────────────────────────
   const clearSession = useCallback(() => {
     setMessages([])
+    setSessionId(null)
     setDocumentContext('')
     setUploadedFileName('')
     setUploadedFiles([])
@@ -81,6 +137,7 @@ export function useChat() {
 
   return {
     messages,
+    sessionId,
     mode,
     setMode,
     selectedModel,
@@ -92,6 +149,7 @@ export function useChat() {
     documentContext,
     sendUserMessage,
     handleFileUpload,
+    loadSession,
     clearSession
   }
 }

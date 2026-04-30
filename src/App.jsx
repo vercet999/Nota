@@ -29,6 +29,7 @@ import { TypewriterWelcome } from "./components/TypewriterWelcome";
 import { FlashcardsView } from "./components/FlashcardsView";
 import { SearchModal } from "./components/SearchModal";
 import { UploadedFilesModal } from "./components/UploadedFilesModal";
+import { HistoryDrawer } from "./components/HistoryDrawer";
 import { MODELS } from "./utils/claudeApi";
 
 export default function App() {
@@ -96,6 +97,7 @@ export default function App() {
     documentContext,
     sendUserMessage,
     handleFileUpload,
+    loadSession,
     clearSession,
   } = useChat();
 
@@ -202,6 +204,13 @@ export default function App() {
               </span>
               <span className="sidebar-item-label">Uploaded Files</span>
             </button>
+            <HistoryDrawer
+              isOpen={isSidebarOpen}
+              onLoadSession={(id) => {
+                loadSession(id);
+                setIsSidebarOpen(false);
+              }}
+            />
           </div>
           <div className="sidebar-bottom">
             <button

@@ -111,6 +111,51 @@ export async function sendMessage(
   return data.content[0].text;
 }
 
+export async function generateSessionTitle(message, modelId = DEFAULT_MODEL) {
+  const apiKey = import.meta.env.VITE_CLAUDE_API_KEY;
+
+  if (!apiKey || apiKey === "your_claude_api_key_here") {
+    throw new Error(
+      "No API key found. Add your Claude API key to the .env file.",
+    );
+  }
+
+  const response = await fetch(CLAUDE_API_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-access": "true",
+    },
+    body: JSON.stringify({
+      model: modelId,
+      max_tokens: 24,
+      system:
+        "Create a concise chat title. Return only 4-6 words, no quotes, no punctuation.",
+      messages: [
+        {
+          role: "user",
+          content: `Title this study session from the first message:\n\n${message}`,
+        },
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error?.message || "Could not generate title.");
+  }
+
+  const data = await response.json();
+  return data.content[0].text
+    .replace(/["'.:!?]/g, "")
+    .trim()
+    .split(/\s+/)
+    .slice(0, 6)
+    .join(" ");
+}
+
 export async function generateFlashcards(
   documentContext,
   modelId = DEFAULT_MODEL,
