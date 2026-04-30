@@ -710,29 +710,45 @@ body {
   align-items: flex-end;
   padding: 0 24px 20px;
   flex-shrink: 0;
+  width: 100%;
+}
+
+.chat-input-wrapper {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  min-height: 48px;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+.chat-input-wrapper:focus-within {
+  border-color: var(--accent-dim);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .message-input {
   flex: 1;
-  background: var(--bg-input);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  background: transparent;
+  border: none;
   color: var(--text-primary);
   font-family: var(--font-body);
   font-size: 15px;
-  padding: 12px 16px;
+  padding: 12px 50px;
   resize: none;
   outline: none;
-  transition: border-color 0.15s;
   line-height: 1.5;
+  min-height: 48px;
 }
 
 .message-input::placeholder {
   color: var(--text-muted);
-}
-
-.message-input:focus {
-  border-color: var(--accent-dim);
 }
 
 .message-input:disabled {
@@ -740,9 +756,9 @@ body {
 }
 
 .send-btn {
-  width: 44px;
-  height: 44px;
-  border-radius: var(--radius-sm);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
   background: var(--accent);
   border: none;
   color: var(--bg-base);
@@ -799,6 +815,7 @@ body {
   max-width: 400px;
   padding: 24px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  position: relative;
 }
 
 .modal-header {
@@ -815,6 +832,7 @@ body {
   margin: 0;
 }
 
+.modal-close,
 .close-btn {
   background: none;
   border: none;
@@ -823,10 +841,20 @@ body {
   line-height: 1;
   cursor: pointer;
   transition: color 0.15s;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 16px;
+  right: 16px;
 }
 
+.modal-close:hover,
 .close-btn:hover {
   color: var(--text-primary);
+  background: var(--bg-hover);
 }
 
 .form-group {
@@ -1140,9 +1168,9 @@ body {
 
 /* ── Action Menu Button & Popover ── */
 .plus-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-sm);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
   background: transparent;
   border: none;
   color: var(--text-muted);
