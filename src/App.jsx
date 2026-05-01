@@ -419,7 +419,7 @@ export default function App() {
                   </div>
                 </div>
                 <div className="welcome-controls-outside">
-                  <div className="quick-prompts" style={{ padding: 0 }}>
+                  <div className="quick-prompts">
                     {QUICK_PROMPTS.map((qp) => (
                       <button
                         key={qp.label}
@@ -500,7 +500,7 @@ export default function App() {
               )}
 
               {/* ── Quick Prompts ── */}
-              <div className="quick-prompts" style={{ padding: "0 24px 12px" }}>
+              <div className="quick-prompts">
                 {QUICK_PROMPTS.map((qp) => (
                   <button
                     key={qp.label}
