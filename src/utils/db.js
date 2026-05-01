@@ -94,6 +94,20 @@ export async function getSessionMessages(sessionId) {
   return data;
 }
 
+export async function getSessionDocuments(sessionId) {
+  const { data, error } = await supabase
+    .from("documents")
+    .select("*")
+    .eq("session_id", sessionId)
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching documents:", error);
+    throw error;
+  }
+  return data;
+}
+
 export async function deleteSession(sessionId) {
   const { data, error } = await supabase
     .from("sessions")

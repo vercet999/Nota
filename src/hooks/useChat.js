@@ -16,6 +16,7 @@ import {
   saveMessage,
   saveDocument,
   getSessionMessages,
+  getSessionDocuments,
 } from "../utils/db";
 
 export function useChat() {
@@ -41,15 +42,34 @@ export function useChat() {
     try {
       setIsLoading(true);
       setError(null);
-      const data = await getSessionMessages(id);
-      setSessionId(id);
-      setMessages(data); // Map if needed, but the structure '{id, role, content}' matches what we need mostly
 
-      // Optionally we could load documents if necessary
-      // Reset uploaded files for now, since we aren't fetching documents for view yet
-      // Or we can just leave existing uploaded documents mostly alone
-      // but ideally we'd fetch the document contents, but skipping for simplicity
-      // unless specified.
+      // Fetch messages and documents in parallel
+      const [msgs, docs] = await Promise.all([
+        getSessionMessages(id),
+        getSessionDocuments(id).catch(() => []), // don't fail if no docs
+      ]);
+
+      setSessionId(id);
+      setMessages(msgs);
+
+      // Restore document context — concatenate all docs from that session
+      if (docs && docs.length > 0) {
+        const combinedText = docs
+          .map((d) => `[${d.file_name}]\n${d.extracted_text}`)
+          .join("\n\n---\n\n");
+        setDocumentContext(combinedText);
+
+        // Restore uploaded files list so the UI shows the file names
+        setUploadedFiles(
+          docs.map((d) => ({ id: d.id, name: d.file_name, text: d.extracted_text }))
+        );
+        setUploadedFileName(docs[docs.length - 1].file_name);
+      } else {
+        // No documents for this session — clear any stale context
+        setDocumentContext("");
+        setUploadedFiles([]);
+        setUploadedFileName("");
+      }
     } catch (err) {
       setError(`Could not load session: ${err.message}`);
     } finally {
