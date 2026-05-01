@@ -1,8 +1,9 @@
-import { supabase } from "./supabase";
+import { requireSupabase } from "./supabase";
 
 const getNow = () => new Date().toISOString();
 
 async function touchSession(sessionId) {
+  const supabase = requireSupabase();
   const { error } = await supabase
     .from("sessions")
     .update({ updated_at: getNow() })
@@ -12,6 +13,7 @@ async function touchSession(sessionId) {
 }
 
 export async function createSession(mode, model) {
+  const supabase = requireSupabase();
   const now = getNow();
   const { data, error } = await supabase
     .from("sessions")
@@ -30,6 +32,7 @@ export async function createSession(mode, model) {
 }
 
 export async function updateSessionTitle(sessionId, title) {
+  const supabase = requireSupabase();
   const { data, error } = await supabase
     .from("sessions")
     .update({ title, updated_at: getNow() })
@@ -42,6 +45,7 @@ export async function updateSessionTitle(sessionId, title) {
 }
 
 export async function saveMessage(sessionId, role, content) {
+  const supabase = requireSupabase();
   const { data, error } = await supabase
     .from("messages")
     .insert({
@@ -59,6 +63,7 @@ export async function saveMessage(sessionId, role, content) {
 }
 
 export async function saveDocument(sessionId, fileName, extractedText) {
+  const supabase = requireSupabase();
   const { data, error } = await supabase
     .from("documents")
     .insert({
@@ -76,6 +81,7 @@ export async function saveDocument(sessionId, fileName, extractedText) {
 }
 
 export async function getSessions() {
+  const supabase = requireSupabase();
   const { data, error } = await supabase
     .from("sessions")
     .select("*")
@@ -87,6 +93,7 @@ export async function getSessions() {
 }
 
 export async function getSessionMessages(sessionId) {
+  const supabase = requireSupabase();
   const { data, error } = await supabase
     .from("messages")
     .select("*")
@@ -98,6 +105,7 @@ export async function getSessionMessages(sessionId) {
 }
 
 export async function deleteSession(sessionId) {
+  const supabase = requireSupabase();
   const { error: documentsError } = await supabase
     .from("documents")
     .delete()
