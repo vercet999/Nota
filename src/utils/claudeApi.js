@@ -3,7 +3,7 @@
 // Modes change the system prompt — same API call, different personality.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const CLAUDE_API_URL = "https://api.anthropic.com/v1/messages";
+const CLAUDE_API_URL = "/api/chat";
 
 export const MODELS = {
   haiku: { id: "claude-haiku-4-5-20251001", label: "Haiku", badge: "Fast" },
@@ -87,10 +87,6 @@ export async function sendMessage(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-      // Required for browser-side calls
-      "anthropic-dangerous-direct-browser-access": "true",
     },
     body: JSON.stringify({
       model: modelId,
@@ -128,9 +124,6 @@ export async function generateSessionTitle(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-      "anthropic-dangerous-direct-browser-access": "true",
     },
     body: JSON.stringify({
       model: modelId,

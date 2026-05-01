@@ -62,25 +62,6 @@ export function useChat() {
     async (text, userNameForApi) => {
       if (!text.trim() || isLoading) return;
 
-      let currentSessionId = sessionId;
-
-      // Create session on first message
-      if (!currentSessionId) {
-        try {
-          const session = await createSession(mode, selectedModel);
-          currentSessionId = session.id;
-          setSessionId(currentSessionId);
-
-          // Generate title in background
-          generateSessionTitle(text, selectedModel).then((title) => {
-            updateSessionTitle(currentSessionId, title);
-          });
-        } catch (err) {
-          setError(`Failed to create session: ${err.message}`);
-          return;
-        }
-      }
-
       const userMessage = {
         id: crypto.randomUUID(),
         role: "user",
@@ -88,12 +69,41 @@ export function useChat() {
       };
       const updatedMessages = [...messages, userMessage];
 
+      // Optimistically update UI so message doesn't "vanish"
       setMessages(updatedMessages);
       setIsLoading(true);
       setError(null);
 
+      let currentSessionId = sessionId;
+
       try {
-        await saveMessage(currentSessionId, "user", text);
+        // Create session on first message
+        if (!currentSessionId) {
+          const session = await createSession(mode, selectedModel).catch(
+            (e) => {
+              console.warn("Could not create DB session", e);
+              return null;
+            },
+          );
+          if (session) {
+            currentSessionId = session.id;
+            setSessionId(currentSessionId);
+
+            // Generate title in background
+            generateSessionTitle(text, selectedModel)
+              .then((title) => {
+                updateSessionTitle(currentSessionId, title).catch(() => {});
+              })
+              .catch(() => {});
+          }
+        }
+
+        if (currentSessionId) {
+          await saveMessage(currentSessionId, "user", text).catch((e) =>
+            console.warn("Could not save message", e),
+          );
+        }
+
         const reply = await sendMessage(
           updatedMessages,
           mode,
@@ -101,13 +111,19 @@ export function useChat() {
           userNameForApi,
           selectedModel,
         );
-        await saveMessage(currentSessionId, "assistant", reply);
+
+        if (currentSessionId) {
+          await saveMessage(currentSessionId, "assistant", reply).catch((e) =>
+            console.warn("Could not save reply", e),
+          );
+        }
+
         setMessages((prev) => [
           ...prev,
           { id: crypto.randomUUID(), role: "assistant", content: reply },
         ]);
       } catch (err) {
-        setError(err.message);
+        setError(err.message || "Failed to establish connection.");
       } finally {
         setIsLoading(false);
       }

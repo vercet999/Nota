@@ -446,31 +446,6 @@ export default function App() {
             </div>
           ) : (
             <>
-              {/* ── Header ── */}
-              <header className="app-header">
-                <div className="header-left">
-                  <h1 className="app-title">Nota</h1>
-                  <span className="app-subtitle">Study AI</span>
-                </div>
-                <div
-                  className="header-right"
-                  style={{ display: "flex", gap: "8px" }}
-                >
-                  {messages.length > 0 && (
-                    <button
-                      className="clear-btn"
-                      onClick={() => {
-                        clearSession();
-                        setIsFlashcardsOpen(false);
-                      }}
-                      title="Start a new session"
-                    >
-                      New Session
-                    </button>
-                  )}
-                </div>
-              </header>
-
               {/* ── Chat Area ── */}
               <main className="chat-area">
                 <ChatWindow
@@ -498,30 +473,6 @@ export default function App() {
                   <AlertTriangle size={16} /> {error}
                 </div>
               )}
-
-              {/* ── Quick Prompts ── */}
-              <div className="quick-prompts">
-                {QUICK_PROMPTS.map((qp) => (
-                  <button
-                    key={qp.label}
-                    className="quick-prompt-btn"
-                    onClick={() => {
-                      setInputText(qp.text);
-                      setShowActionMenu(false);
-                      textareaRef.current?.focus();
-                    }}
-                    disabled={isLoading}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "6px",
-                    }}
-                  >
-                    <span style={{ opacity: 0.7 }}>{qp.icon}</span>
-                    {qp.label}
-                  </button>
-                ))}
-              </div>
 
               {/* ── Input Area ── */}
               <div className="input-area" style={{ position: "relative" }}>
