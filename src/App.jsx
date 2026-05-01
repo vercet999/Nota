@@ -19,7 +19,6 @@ import {
   Key,
   Newspaper,
   Library,
-  Clock,
 } from "lucide-react";
 import { useChat } from "./hooks/useChat";
 import { ChatWindow } from "./components/ChatWindow";
@@ -32,6 +31,46 @@ import { SearchModal } from "./components/SearchModal";
 import { UploadedFilesModal } from "./components/UploadedFilesModal";
 import { HistoryDrawer } from "./components/HistoryDrawer";
 import { MODELS } from "./utils/claudeApi";
+
+// ── SidebarRecents — inline history list shown when sidebar is expanded ──────
+function SidebarRecents({ isOpen, onLoadSession }) {
+  const [sessions, setSessions] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setLoading(true);
+    import("./utils/db.js")
+      .then(({ getSessions }) => getSessions())
+      .then((data) => setSessions(data || []))
+      .catch(() => setSessions([]))
+      .finally(() => setLoading(false));
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="sidebar-recents">
+      <span className="sidebar-recents-label">Recents</span>
+      {loading && (
+        <span className="sidebar-recents-empty">Loading...</span>
+      )}
+      {!loading && sessions.length === 0 && (
+        <span className="sidebar-recents-empty">No chats yet</span>
+      )}
+      {!loading && sessions.map((s) => (
+        <button
+          key={s.id}
+          className="sidebar-recent-item"
+          onClick={() => onLoadSession(s.id)}
+          title={s.title}
+        >
+          {s.title || "Untitled"}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 export default function App() {
   const [userName, setUserName] = useState(
@@ -272,18 +311,20 @@ export default function App() {
       {/* ── Expandable Left Sidebar ── */}
       <aside className={`left-sidebar ${isSidebarOpen ? "expanded" : ""}`} ref={sidebarRef}>
         <div className="sidebar-content-wrapper">
-          <div className="sidebar-top">
+
+          {/* ── Sidebar Header: icon always visible, title appears when expanded ── */}
+          <div className="sidebar-header">
             <button
-              className="sidebar-item"
+              className="sidebar-toggle-btn"
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              title={isSidebarOpen ? "Collapse" : "Expand"}
             >
-              <span className="sidebar-item-icon">
-                <PanelLeft size={20} strokeWidth={1.5} />
-              </span>
-              <span className="sidebar-item-label">
-                {isSidebarOpen ? "Close Sidebar" : "Expand Sidebar"}
-              </span>
+              <PanelLeft size={20} strokeWidth={1.5} />
             </button>
+            <span className="sidebar-brand-name">Nota</span>
+          </div>
+
+          <div className="sidebar-top">
             <button
               className="sidebar-item"
               onClick={() => {
@@ -294,7 +335,7 @@ export default function App() {
               <span className="sidebar-item-icon">
                 <Plus size={20} strokeWidth={1.5} />
               </span>
-              <span className="sidebar-item-label">New Session</span>
+              <span className="sidebar-item-label">New Chat</span>
             </button>
             <button
               className="sidebar-item"
@@ -324,17 +365,18 @@ export default function App() {
               </span>
               <span className="sidebar-item-label">Uploaded Files</span>
             </button>
-            <button
-              className="sidebar-item"
-              onClick={() => setIsHistoryOpen(true)}
-              title="Chat History"
-            >
-              <span className="sidebar-item-icon">
-                <Clock size={20} strokeWidth={1.5} />
-              </span>
-              <span className="sidebar-item-label">Chat History</span>
-            </button>
           </div>
+
+          {/* ── Recents section — only visible when expanded, like Claude ── */}
+          <SidebarRecents
+            isOpen={isSidebarOpen}
+            onLoadSession={(id) => {
+              loadSession(id);
+              setIsFlashcardsOpen(false);
+              setIsSidebarOpen(false);
+            }}
+          />
+
           <div className="sidebar-bottom">
             <button
               className="sidebar-item"
@@ -359,7 +401,7 @@ export default function App() {
                   {getInitials(activeName)}
                 </div>
               </span>
-              <span className="sidebar-item-label">{activeName} Settings</span>
+              <span className="sidebar-item-label">{activeName}</span>
             </button>
           </div>
         </div>
@@ -385,6 +427,7 @@ export default function App() {
               uploadedFiles={uploadedFiles}
               messages={messages}
               modelId={selectedModel}
+              onLoadSession={loadSession}
             />
           ) : messages.length === 0 ? (
             <div className="welcome-screen">
@@ -673,14 +716,6 @@ export default function App() {
         uploadedFiles={uploadedFiles}
       />
 
-      <HistoryDrawer
-        isOpen={isHistoryOpen}
-        onClose={() => setIsHistoryOpen(false)}
-        onLoadSession={(id) => {
-          loadSession(id);
-          setIsFlashcardsOpen(false);
-        }}
-      />
     </div>
   );
 }

@@ -7,7 +7,6 @@ import {
   BrainCircuit,
   MessageSquare,
   FileText,
-  ArrowLeft,
   Layers,
   Settings2,
   Target,
@@ -62,7 +61,7 @@ function ConfigDropdown({ label, icon, value, options, onChange }) {
   );
 }
 
-export function FlashcardsView({ onBack, uploadedFiles, messages, modelId }) {
+export function FlashcardsView({ onBack, uploadedFiles, messages, modelId, onLoadSession }) {
   const [flashcards, setFlashcards] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
@@ -74,6 +73,11 @@ export function FlashcardsView({ onBack, uploadedFiles, messages, modelId }) {
   const [flavorMode, setFlavorMode] = useState("normal");
   const [topicFocus, setTopicFocus] = useState("");
   const [direction, setDirection] = useState(0);
+
+  // For session picker
+  const [showSessionPicker, setShowSessionPicker] = useState(false);
+  const [recentSessions, setRecentSessions] = useState([]);
+  const [loadingSessions, setLoadingSessions] = useState(false);
 
   const handleGenerate = async () => {
     setIsLoading(true);
@@ -122,14 +126,44 @@ export function FlashcardsView({ onBack, uploadedFiles, messages, modelId }) {
     setSelectionMade(true);
   };
 
-  const selectChatHistory = () => {
+  const openSessionPicker = async () => {
+    setShowSessionPicker(true);
+    setLoadingSessions(true);
+    try {
+      const { getSessions, getSessionMessages } = await import("../utils/db.js");
+      const sessions = await getSessions();
+      setRecentSessions(sessions || []);
+    } catch {
+      setRecentSessions([]);
+    } finally {
+      setLoadingSessions(false);
+    }
+  };
+
+  const selectSessionHistory = async (session) => {
+    setShowSessionPicker(false);
+    setLoadingSessions(true);
+    try {
+      const { getSessionMessages } = await import("../utils/db.js");
+      const msgs = await getSessionMessages(session.id);
+      const history = msgs
+        .map((m) => `${m.role === "user" ? "User" : "Assistant"}: ${m.content}`)
+        .join("\n");
+      if (!history) { setError("That conversation has no content."); return; }
+      setSourceData(history);
+      setSelectionMade(true);
+    } catch {
+      setError("Could not load that conversation. Try again.");
+    } finally {
+      setLoadingSessions(false);
+    }
+  };
+
+  const selectCurrentChat = () => {
     const history = messages
       .map((m) => `${m.role === "user" ? "User" : "Assistant"}: ${m.content}`)
       .join("\n");
-    if (!history) {
-      setError("Chat history is empty.");
-      return;
-    }
+    if (!history) { setError("Current chat is empty."); return; }
     setSourceData(history);
     setSelectionMade(true);
   };
@@ -151,7 +185,7 @@ export function FlashcardsView({ onBack, uploadedFiles, messages, modelId }) {
   return (
     <div
       className="flashcards-view"
-      style={{ padding: "24px", flex: 1, overflowY: "auto" }}
+      style={{ padding: "24px", paddingTop: "64px", flex: 1, overflowY: "auto" }}
     >
       <div
         style={{
@@ -161,9 +195,6 @@ export function FlashcardsView({ onBack, uploadedFiles, messages, modelId }) {
           gap: "12px",
         }}
       >
-        <button className="icon-btn" onClick={onBack} title="Back to Chat">
-          <ArrowLeft size={20} />
-        </button>
         <h2
           style={{
             fontSize: "24px",
@@ -296,8 +327,9 @@ export function FlashcardsView({ onBack, uploadedFiles, messages, modelId }) {
               </button>
             ))}
 
+            {/* Current chat option */}
             <button
-              onClick={selectChatHistory}
+              onClick={selectCurrentChat}
               style={{
                 display: "flex",
                 flexDirection: "column",
@@ -316,20 +348,101 @@ export function FlashcardsView({ onBack, uploadedFiles, messages, modelId }) {
               <MessageSquare
                 size={32}
                 style={{
-                  color:
-                    messages.length > 0 ? "var(--accent)" : "var(--text-muted)",
+                  color: messages.length > 0 ? "var(--accent)" : "var(--text-muted)",
                 }}
               />
               <span style={{ fontWeight: 500, color: "var(--text-primary)" }}>
-                Chat History
+                Current Chat
               </span>
               {messages.length === 0 && (
                 <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>
-                  (No chat history)
+                  (No active chat)
                 </span>
               )}
             </button>
+
+            {/* Pick from history */}
+            <button
+              onClick={openSessionPicker}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "12px",
+                padding: "24px",
+                background: "var(--bg-surface)",
+                border: "1px solid var(--border)",
+                borderRadius: "12px",
+                cursor: "pointer",
+                transition: "all 0.2s",
+              }}
+              className="hover:border-[var(--accent)]"
+            >
+              <FileText size={32} style={{ color: "var(--accent)" }} />
+              <span style={{ fontWeight: 500, color: "var(--text-primary)" }}>
+                From History
+              </span>
+              <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>
+                Pick a past conversation
+              </span>
+            </button>
           </div>
+
+          {/* ── Session picker overlay ── */}
+          {showSessionPicker && (
+            <div
+              style={{
+                position: "fixed", inset: 0,
+                background: "rgba(0,0,0,0.6)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                zIndex: 200,
+              }}
+              onClick={() => setShowSessionPicker(false)}
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  background: "var(--bg-surface)",
+                  border: "1px solid var(--border)",
+                  borderRadius: "16px",
+                  padding: "24px",
+                  width: "90%",
+                  maxWidth: "480px",
+                  maxHeight: "70vh",
+                  overflowY: "auto",
+                }}
+              >
+                <h3 style={{ marginBottom: "16px", color: "var(--text-primary)" }}>
+                  Pick a conversation
+                </h3>
+                {loadingSessions && (
+                  <p style={{ color: "var(--text-muted)" }}>Loading...</p>
+                )}
+                {!loadingSessions && recentSessions.length === 0 && (
+                  <p style={{ color: "var(--text-muted)" }}>No past conversations found.</p>
+                )}
+                {!loadingSessions && recentSessions.map((s) => (
+                  <button
+                    key={s.id}
+                    onClick={() => selectSessionHistory(s)}
+                    style={{
+                      display: "block", width: "100%", textAlign: "left",
+                      padding: "12px 16px", marginBottom: "8px",
+                      background: "var(--bg-raised)", border: "1px solid var(--border)",
+                      borderRadius: "8px", color: "var(--text-primary)",
+                      cursor: "pointer", fontSize: "14px",
+                      transition: "border-color 0.15s",
+                    }}
+                  >
+                    <div style={{ fontWeight: 500 }}>{s.title || "Untitled"}</div>
+                    <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "4px" }}>
+                      {new Date(s.updated_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       ) : isLoading ? (
         <div

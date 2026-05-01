@@ -966,7 +966,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0 10px;
+  padding: 0 40px;
 }
 
 .welcome-typewriter-wrapper {
@@ -1242,8 +1242,8 @@ body {
   .mobile-sidebar-toggle {
     position: absolute;
     left: 12px;
-    background: none;
-    border: 0;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     padding: 8px;
     display: flex;
@@ -1329,7 +1329,7 @@ body {
   }
 
   .quick-prompts {
-   padding: 0 6px 8px;
+    padding: 0 16px 8px;
     flex-wrap: nowrap;
     overflow-x: auto;
     justify-content: flex-start;
@@ -1561,4 +1561,136 @@ body {
     background: rgba(0, 0, 0, 0.5);
     z-index: -1;
   }
+}
+
+/* ── User CSS updates ────────────────────────────────────────────── */
+.welcome-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 40px;
+}
+
+@media (max-width: 600px) {
+  .mobile-sidebar-toggle {
+    position: absolute;
+    left: 12px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 8px;
+    display: flex;
+  }
+
+  .quick-prompts {
+    padding: 0 16px 8px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    justify-content: flex-start;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    width: 100%;
+    max-width: 100vw;
+  }
+}
+
+/* ── Sidebar header (Nota brand + toggle icon) ────────────────────── */
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 2px 20px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.sidebar-toggle-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  transition: color 0.15s, background 0.15s;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+}
+
+.sidebar-toggle-btn:hover {
+  background: var(--bg-raised);
+  color: var(--text-primary);
+}
+
+.sidebar-brand-name {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--accent);
+  opacity: 0;
+  white-space: nowrap;
+  transition: opacity 0.2s 0.05s;
+  pointer-events: none;
+}
+
+.left-sidebar.expanded .sidebar-brand-name {
+  opacity: 1;
+}
+
+/* ── Sidebar recents section ──────────────────────────────────────── */
+.sidebar-recents {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 12px 0 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--bg-raised) transparent;
+}
+
+.sidebar-recents-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  padding: 4px 12px 8px;
+  white-space: nowrap;
+}
+
+.sidebar-recents-empty {
+  font-size: 13px;
+  color: var(--text-muted);
+  padding: 4px 12px;
+  white-space: nowrap;
+}
+
+.sidebar-recent-item {
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 13px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-recent-item:hover {
+  background: var(--bg-raised);
+  color: var(--text-primary);
 }
