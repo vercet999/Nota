@@ -19,6 +19,7 @@ import {
   Key,
   Newspaper,
   Library,
+  Clock,
 } from "lucide-react";
 import { useChat } from "./hooks/useChat";
 import { ChatWindow } from "./components/ChatWindow";
@@ -29,6 +30,7 @@ import { TypewriterWelcome } from "./components/TypewriterWelcome";
 import { FlashcardsView } from "./components/FlashcardsView";
 import { SearchModal } from "./components/SearchModal";
 import { UploadedFilesModal } from "./components/UploadedFilesModal";
+import { HistoryDrawer } from "./components/HistoryDrawer";
 import { MODELS } from "./utils/claudeApi";
 
 export default function App() {
@@ -41,6 +43,7 @@ export default function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isFilesModalOpen, setIsFilesModalOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isFlashcardsOpen, setIsFlashcardsOpen] = useState(false);
   const [showActionMenu, setShowActionMenu] = useState(false);
   const [showModelDropdown, setShowModelDropdown] = useState(false);
@@ -97,6 +100,7 @@ export default function App() {
     sendUserMessage,
     handleFileUpload,
     clearSession,
+    loadSession,
   } = useChat();
 
   const [inputText, setInputText] = useState("");
@@ -151,6 +155,69 @@ export default function App() {
     },
   ];
 
+  const renderModelSwitcher = () => (
+    <div className="custom-dropdown-container">
+      <button
+        className="welcome-model-select"
+        onClick={() => setShowModelDropdown(!showModelDropdown)}
+        style={{ display: "flex", alignItems: "center", gap: "4px" }}
+      >
+        {
+          MODELS[
+            Object.keys(MODELS).find((k) => MODELS[k].id === selectedModel)
+          ]?.label
+        }{" "}
+        <span
+          style={{
+            opacity: 0.6,
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "2px",
+          }}
+        >
+          {selectedModel.includes("haiku") ? (
+            <Zap size={12} />
+          ) : (
+            <Brain size={12} />
+          )}{" "}
+          {
+            MODELS[
+              Object.keys(MODELS).find((k) => MODELS[k].id === selectedModel)
+            ]?.badge
+          }
+        </span>
+        <ChevronDown size={14} style={{ marginLeft: 4 }} />
+      </button>
+      {showModelDropdown && (
+        <div className="custom-dropdown-menu">
+          {Object.values(MODELS).map((m) => (
+            <button
+              key={m.id}
+              className={`custom-dropdown-item ${selectedModel === m.id ? "active" : ""}`}
+              onClick={() => {
+                setSelectedModel(m.id);
+                setShowModelDropdown(false);
+              }}
+            >
+              <span>{m.label}</span>
+              <span
+                className="dropdown-badge"
+                style={{ display: "flex", alignItems: "center", gap: "4px" }}
+              >
+                {m.id.includes("haiku") ? (
+                  <Zap size={12} />
+                ) : (
+                  <Brain size={12} />
+                )}
+                {m.badge}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="app-layout">
       {/* ── Expandable Left Sidebar ── */}
@@ -168,7 +235,13 @@ export default function App() {
                 {isSidebarOpen ? "Close Sidebar" : "Expand Sidebar"}
               </span>
             </button>
-            <button className="sidebar-item" onClick={clearSession}>
+            <button
+              className="sidebar-item"
+              onClick={() => {
+                clearSession();
+                setIsFlashcardsOpen(false);
+              }}
+            >
               <span className="sidebar-item-icon">
                 <Plus size={20} strokeWidth={1.5} />
               </span>
@@ -202,6 +275,16 @@ export default function App() {
               </span>
               <span className="sidebar-item-label">Uploaded Files</span>
             </button>
+            <button
+              className="sidebar-item"
+              onClick={() => setIsHistoryOpen(true)}
+              title="Chat History"
+            >
+              <span className="sidebar-item-icon">
+                <Clock size={20} strokeWidth={1.5} />
+              </span>
+              <span className="sidebar-item-label">Chat History</span>
+            </button>
           </div>
           <div className="sidebar-bottom">
             <button
@@ -234,6 +317,18 @@ export default function App() {
       </aside>
 
       <div className="main-content-wrapper">
+        <div className="mobile-top-bar">
+          <button
+            className="icon-btn mobile-sidebar-toggle"
+            onClick={() => setIsSidebarOpen(true)}
+          >
+            <PanelLeft size={20} strokeWidth={1.5} />
+          </button>
+          <div className="mobile-model-switcher-wrapper">
+            {messages.length === 0 && renderModelSwitcher()}
+          </div>
+          <div style={{ width: 32 }}></div>
+        </div>
         <div className="app-container">
           {isFlashcardsOpen ? (
             <FlashcardsView
@@ -311,81 +406,8 @@ export default function App() {
                       disabled={isLoading}
                       rows={1}
                     />
-                    <div className="welcome-model-indicator">
-                      <div className="custom-dropdown-container">
-                        <button
-                          className="welcome-model-select"
-                          onClick={() =>
-                            setShowModelDropdown(!showModelDropdown)
-                          }
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "4px",
-                          }}
-                        >
-                          {
-                            MODELS[
-                              Object.keys(MODELS).find(
-                                (k) => MODELS[k].id === selectedModel,
-                              )
-                            ]?.label
-                          }{" "}
-                          <span
-                            style={{
-                              opacity: 0.6,
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: "2px",
-                            }}
-                          >
-                            {selectedModel.includes("haiku") ? (
-                              <Zap size={12} />
-                            ) : (
-                              <Brain size={12} />
-                            )}{" "}
-                            {
-                              MODELS[
-                                Object.keys(MODELS).find(
-                                  (k) => MODELS[k].id === selectedModel,
-                                )
-                              ]?.badge
-                            }
-                          </span>
-                          <ChevronDown size={14} style={{ marginLeft: 4 }} />
-                        </button>
-                        {showModelDropdown && (
-                          <div className="custom-dropdown-menu">
-                            {Object.values(MODELS).map((m) => (
-                              <button
-                                key={m.id}
-                                className={`custom-dropdown-item ${selectedModel === m.id ? "active" : ""}`}
-                                onClick={() => {
-                                  setSelectedModel(m.id);
-                                  setShowModelDropdown(false);
-                                }}
-                              >
-                                <span>{m.label}</span>
-                                <span
-                                  className="dropdown-badge"
-                                  style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "4px",
-                                  }}
-                                >
-                                  {m.id.includes("haiku") ? (
-                                    <Zap size={12} />
-                                  ) : (
-                                    <Brain size={12} />
-                                  )}
-                                  {m.badge}
-                                </span>
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
+                    <div className="welcome-model-indicator hidden-on-mobile">
+                      {renderModelSwitcher()}
                       <button
                         className="icon-btn send-icon-btn"
                         onClick={handleSubmit}
@@ -437,7 +459,10 @@ export default function App() {
                   {messages.length > 0 && (
                     <button
                       className="clear-btn"
-                      onClick={clearSession}
+                      onClick={() => {
+                        clearSession();
+                        setIsFlashcardsOpen(false);
+                      }}
                       title="Start a new session"
                     >
                       New Session
@@ -636,6 +661,15 @@ export default function App() {
         isOpen={isFilesModalOpen}
         onClose={() => setIsFilesModalOpen(false)}
         uploadedFiles={uploadedFiles}
+      />
+
+      <HistoryDrawer
+        isOpen={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
+        onLoadSession={(id) => {
+          loadSession(id);
+          setIsFlashcardsOpen(false);
+        }}
       />
     </div>
   );

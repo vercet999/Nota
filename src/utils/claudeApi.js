@@ -111,6 +111,44 @@ export async function sendMessage(
   return data.content[0].text;
 }
 
+export async function generateSessionTitle(
+  messageContent,
+  modelId = DEFAULT_MODEL,
+) {
+  const apiKey = import.meta.env.VITE_CLAUDE_API_KEY;
+  if (!apiKey || apiKey === "your_claude_api_key_here") {
+    throw new Error(
+      "No API key found. Add your Claude API key to the .env file.",
+    );
+  }
+
+  const systemPrompt = `You are a helpful assistant. Generate a 4-6 word title summarizing the user's message. Output ONLY the title, no quotes, no extra text.`;
+
+  const response = await fetch(CLAUDE_API_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-access": "true",
+    },
+    body: JSON.stringify({
+      model: modelId,
+      max_tokens: 20,
+      system: systemPrompt,
+      messages: [{ role: "user", content: messageContent }],
+    }),
+  });
+
+  if (!response.ok) {
+    return "New Conversation"; // Fallback gracefully
+  }
+
+  const data = await response.json();
+  const text = data.content[0].text.trim();
+  return text.substring(0, 60); // Safety limit
+}
+
 export async function generateFlashcards(
   documentContext,
   modelId = DEFAULT_MODEL,

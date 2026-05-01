@@ -9,6 +9,9 @@ import {
   MessageSquare,
   FileText,
   ArrowLeft,
+  Layers,
+  Settings2,
+  Target,
 } from "lucide-react";
 import { generateFlashcards } from "../utils/claudeApi";
 
@@ -172,105 +175,51 @@ export function FlashcardsView({ onBack, uploadedFiles, messages, modelId }) {
             with key concepts and definitions.
           </p>
 
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "16px",
-              marginBottom: "32px",
-              textAlign: "left",
-              background: "var(--bg-surface)",
-              padding: "24px",
-              borderRadius: "12px",
-              border: "1px solid var(--border)",
-            }}
-          >
-            <div>
-              <label
-                style={{
-                  display: "block",
-                  marginBottom: "8px",
-                  fontWeight: 500,
-                  color: "var(--text-primary)",
-                }}
-              >
-                Number of Flashcards:
-              </label>
-              <select
-                value={numCards}
-                onChange={(e) => setNumCards(Number(e.target.value))}
-                style={{
-                  padding: "10px 14px",
-                  borderRadius: "8px",
-                  border: "1px solid var(--border)",
-                  background: "var(--bg-base)",
-                  color: "var(--text-primary)",
-                  width: "100%",
-                  maxWidth: "200px",
-                  outline: "none",
-                }}
-              >
-                <option value={5}>5 Cards</option>
-                <option value={10}>10 Cards</option>
-                <option value={15}>15 Cards</option>
-                <option value={20}>20 Cards</option>
-              </select>
+          <div className="flashcard-config-panel">
+            <div className="flashcard-config-row">
+              <div>
+                <label className="flashcard-config-label">
+                  <Layers size={16} style={{ color: "var(--accent)" }} />
+                  Number of Flashcards:
+                </label>
+                <select
+                  className="flashcard-config-select"
+                  value={numCards}
+                  onChange={(e) => setNumCards(Number(e.target.value))}
+                >
+                  <option value={5}>5 Cards</option>
+                  <option value={10}>10 Cards</option>
+                  <option value={15}>15 Cards</option>
+                  <option value={20}>20 Cards</option>
+                </select>
+              </div>
+              <div>
+                <label className="flashcard-config-label">
+                  <Settings2 size={16} style={{ color: "var(--accent)" }} />
+                  Definition Style:
+                </label>
+                <select
+                  className="flashcard-config-select"
+                  value={flavorMode}
+                  onChange={(e) => setFlavorMode(e.target.value)}
+                >
+                  <option value="normal">Normal (Clear & Direct)</option>
+                  <option value="simple">Simplify (For Beginners)</option>
+                  <option value="exam">Exam Mode (Structured)</option>
+                </select>
+              </div>
             </div>
             <div>
-              <label
-                style={{
-                  display: "block",
-                  marginBottom: "8px",
-                  fontWeight: 500,
-                  color: "var(--text-primary)",
-                }}
-              >
-                Definition Style:
-              </label>
-              <select
-                value={flavorMode}
-                onChange={(e) => setFlavorMode(e.target.value)}
-                style={{
-                  padding: "10px 14px",
-                  borderRadius: "8px",
-                  border: "1px solid var(--border)",
-                  background: "var(--bg-base)",
-                  color: "var(--text-primary)",
-                  width: "100%",
-                  maxWidth: "200px",
-                  outline: "none",
-                }}
-              >
-                <option value="normal">Normal (Clear & Direct)</option>
-                <option value="simple">Simplify (For Beginners)</option>
-                <option value="exam">Exam Mode (Structured)</option>
-              </select>
-            </div>
-            <div>
-              <label
-                style={{
-                  display: "block",
-                  marginBottom: "8px",
-                  fontWeight: 500,
-                  color: "var(--text-primary)",
-                }}
-              >
+              <label className="flashcard-config-label">
+                <Target size={16} style={{ color: "var(--accent)" }} />
                 Topics / Keywords to Focus On (Optional):
               </label>
               <input
+                className="flashcard-config-input"
                 type="text"
                 placeholder="e.g. History, Dates, Specific Concepts"
                 value={topicFocus}
                 onChange={(e) => setTopicFocus(e.target.value)}
-                style={{
-                  padding: "10px 14px",
-                  borderRadius: "8px",
-                  border: "1px solid var(--border)",
-                  background: "var(--bg-base)",
-                  color: "var(--text-primary)",
-                  width: "100%",
-                  outline: "none",
-                }}
               />
             </div>
           </div>
