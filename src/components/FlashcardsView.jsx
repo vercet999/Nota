@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   RefreshCw,
   ChevronLeft,
   ChevronRight,
-  Check,
   BrainCircuit,
   MessageSquare,
   FileText,
@@ -12,8 +11,56 @@ import {
   Layers,
   Settings2,
   Target,
+  ChevronDown,
 } from "lucide-react";
 import { generateFlashcards } from "../utils/claudeApi";
+
+// ── Reusable custom dropdown matching the model switcher style ──────────────
+function ConfigDropdown({ label, icon, value, options, onChange }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const current = options.find((o) => o.value === value);
+
+  return (
+    <div>
+      <label className="flashcard-config-label">
+        {icon} {label}
+      </label>
+      <div className="custom-dropdown-container" ref={ref} style={{ display: "block" }}>
+        <button
+          className="welcome-model-select flashcard-config-trigger"
+          onClick={() => setOpen(!open)}
+          style={{ width: "100%", justifyContent: "space-between", display: "flex", alignItems: "center", gap: "8px", padding: "10px 14px" }}
+        >
+          <span>{current?.label}</span>
+          <ChevronDown size={14} style={{ opacity: 0.6, flexShrink: 0, transform: open ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
+        </button>
+        {open && (
+          <div className="custom-dropdown-menu" style={{ bottom: "auto", top: "calc(100% + 6px)", left: 0, right: 0, minWidth: "unset", width: "100%" }}>
+            {options.map((opt) => (
+              <button
+                key={opt.value}
+                className={`custom-dropdown-item ${value === opt.value ? "active" : ""}`}
+                onClick={() => { onChange(opt.value); setOpen(false); }}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export function FlashcardsView({ onBack, uploadedFiles, messages, modelId }) {
   const [flashcards, setFlashcards] = useState([]);
@@ -177,37 +224,29 @@ export function FlashcardsView({ onBack, uploadedFiles, messages, modelId }) {
 
           <div className="flashcard-config-panel">
             <div className="flashcard-config-row">
-              <div>
-                <label className="flashcard-config-label">
-                  <Layers size={16} style={{ color: "var(--accent)" }} />
-                  Number of Flashcards:
-                </label>
-                <select
-                  className="flashcard-config-select"
-                  value={numCards}
-                  onChange={(e) => setNumCards(Number(e.target.value))}
-                >
-                  <option value={5}>5 Cards</option>
-                  <option value={10}>10 Cards</option>
-                  <option value={15}>15 Cards</option>
-                  <option value={20}>20 Cards</option>
-                </select>
-              </div>
-              <div>
-                <label className="flashcard-config-label">
-                  <Settings2 size={16} style={{ color: "var(--accent)" }} />
-                  Definition Style:
-                </label>
-                <select
-                  className="flashcard-config-select"
-                  value={flavorMode}
-                  onChange={(e) => setFlavorMode(e.target.value)}
-                >
-                  <option value="normal">Normal (Clear & Direct)</option>
-                  <option value="simple">Simplify (For Beginners)</option>
-                  <option value="exam">Exam Mode (Structured)</option>
-                </select>
-              </div>
+              <ConfigDropdown
+                label="Number of Flashcards"
+                icon={<Layers size={16} style={{ color: "var(--accent)" }} />}
+                value={numCards}
+                options={[
+                  { value: 5, label: "5 Cards" },
+                  { value: 10, label: "10 Cards" },
+                  { value: 15, label: "15 Cards" },
+                  { value: 20, label: "20 Cards" },
+                ]}
+                onChange={(v) => setNumCards(Number(v))}
+              />
+              <ConfigDropdown
+                label="Definition Style"
+                icon={<Settings2 size={16} style={{ color: "var(--accent)" }} />}
+                value={flavorMode}
+                options={[
+                  { value: "normal", label: "Normal (Clear & Direct)" },
+                  { value: "simple", label: "Simplify (For Beginners)" },
+                  { value: "exam", label: "Exam Mode (Structured)" },
+                ]}
+                onChange={setFlavorMode}
+              />
             </div>
             <div>
               <label className="flashcard-config-label">

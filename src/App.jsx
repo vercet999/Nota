@@ -2,7 +2,7 @@
 // Root component. Layout: header → chat window → controls → input
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import {
   PanelLeft,
   Plus,
@@ -105,12 +105,61 @@ export default function App() {
 
   const [inputText, setInputText] = useState("");
   const textareaRef = useRef(null);
+  const sidebarRef = useRef(null);
+  const actionMenuRef = useRef(null);
+  const modelDropdownRef = useRef(null);
+
+  // ── Auto-grow textarea ──────────────────────────────────────────────────
+  const autoGrow = useCallback((el) => {
+    if (!el) return;
+    el.style.height = "auto";
+    const maxH = window.innerHeight * 0.8;
+    const newH = Math.min(el.scrollHeight, maxH);
+    el.style.height = newH + "px";
+    el.style.overflowY = el.scrollHeight > maxH ? "auto" : "hidden";
+  }, []);
+
+  const handleInputChange = (e) => {
+    setInputText(e.target.value);
+    autoGrow(e.target);
+  };
+
+  // Reset height when input is cleared after send
+  useEffect(() => {
+    if (inputText === "" && textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.overflowY = "hidden";
+    }
+  }, [inputText]);
+
+  // ── Close sidebar / dropdowns when clicking outside ─────────────────────
+  useEffect(() => {
+    const handler = (e) => {
+      // Close sidebar if click is outside it
+      if (isSidebarOpen && sidebarRef.current && !sidebarRef.current.contains(e.target)) {
+        setIsSidebarOpen(false);
+      }
+      // Close action menu if click is outside
+      if (showActionMenu && actionMenuRef.current && !actionMenuRef.current.contains(e.target)) {
+        setShowActionMenu(false);
+      }
+      // Close model dropdown if click is outside
+      if (showModelDropdown && modelDropdownRef.current && !modelDropdownRef.current.contains(e.target)) {
+        setShowModelDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [isSidebarOpen, showActionMenu, showModelDropdown]);
 
   const handleSubmit = async () => {
     if (!inputText.trim() || isLoading) return;
     const text = inputText;
     setInputText("");
     setShowActionMenu(false);
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+    }
     textareaRef.current?.focus();
     await sendUserMessage(text, activeName);
   };
@@ -155,8 +204,8 @@ export default function App() {
     },
   ];
 
-  const renderModelSwitcher = () => (
-    <div className="custom-dropdown-container">
+  const renderModelSwitcher = (refProp) => (
+    <div className="custom-dropdown-container" ref={refProp}>
       <button
         className="welcome-model-select"
         onClick={() => setShowModelDropdown(!showModelDropdown)}
@@ -221,7 +270,7 @@ export default function App() {
   return (
     <div className="app-layout">
       {/* ── Expandable Left Sidebar ── */}
-      <aside className={`left-sidebar ${isSidebarOpen ? "expanded" : ""}`}>
+      <aside className={`left-sidebar ${isSidebarOpen ? "expanded" : ""}`} ref={sidebarRef}>
         <div className="sidebar-content-wrapper">
           <div className="sidebar-top">
             <button
@@ -325,7 +374,7 @@ export default function App() {
             <PanelLeft size={20} strokeWidth={1.5} />
           </button>
           <div className="mobile-model-switcher-wrapper">
-            {messages.length === 0 && renderModelSwitcher()}
+            {messages.length === 0 && renderModelSwitcher(modelDropdownRef)}
           </div>
           <div style={{ width: 32 }}></div>
         </div>
@@ -352,6 +401,7 @@ export default function App() {
                   <div className="welcome-input-border">
                     <div
                       className="custom-dropdown-container"
+                      ref={actionMenuRef}
                       style={{ display: "flex", alignItems: "center" }}
                     >
                       <Plus
@@ -401,13 +451,13 @@ export default function App() {
                       className="welcome-textarea"
                       placeholder="How can I help you today?"
                       value={inputText}
-                      onChange={(e) => setInputText(e.target.value)}
+                      onChange={handleInputChange}
                       onKeyDown={handleKeyDown}
                       disabled={isLoading}
                       rows={1}
                     />
                     <div className="welcome-model-indicator hidden-on-mobile">
-                      {renderModelSwitcher()}
+                      {renderModelSwitcher(modelDropdownRef)}
                       <button
                         className="icon-btn send-icon-btn"
                         onClick={handleSubmit}
@@ -416,6 +466,14 @@ export default function App() {
                         <Send size={16} strokeWidth={1.5} />
                       </button>
                     </div>
+                    {/* Mobile-only send button */}
+                    <button
+                      className="icon-btn send-icon-btn mobile-send-btn"
+                      onClick={handleSubmit}
+                      disabled={isLoading || !inputText.trim()}
+                    >
+                      <Send size={16} strokeWidth={1.5} />
+                    </button>
                   </div>
                 </div>
                 <div className="welcome-controls-outside">
@@ -479,6 +537,7 @@ export default function App() {
                 <div className="chat-input-wrapper">
                   <div
                     className="custom-dropdown-container"
+                    ref={actionMenuRef}
                     style={{
                       position: "absolute",
                       left: "6px",
@@ -541,7 +600,7 @@ export default function App() {
                     className="message-input"
                     placeholder="Ask anything — type your question or paste your notes..."
                     value={inputText}
-                    onChange={(e) => setInputText(e.target.value)}
+                    onChange={handleInputChange}
                     onKeyDown={handleKeyDown}
                     disabled={isLoading}
                     rows={1}

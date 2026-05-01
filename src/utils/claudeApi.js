@@ -190,13 +190,10 @@ Output format MUST be JSON like this, with NO markdown formatting, NO \`\`\`json
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-      "anthropic-dangerous-direct-browser-access": "true",
     },
     body: JSON.stringify({
       model: modelId,
-      max_tokens: 1024,
+      max_tokens: 2048,
       system: systemPrompt,
       messages: [{ role: "user", content: inputMessage }],
     }),
@@ -213,12 +210,24 @@ Output format MUST be JSON like this, with NO markdown formatting, NO \`\`\`json
   const text = data.content[0].text.trim();
 
   try {
+    // Strip markdown fences first
     const cleaned = text
-      .replace(/```json/g, "")
+      .replace(/```json/gi, "")
       .replace(/```/g, "")
       .trim();
-    return JSON.parse(cleaned);
-  } catch (error) {
+
+    // Extract the JSON array even if Claude added preamble/postamble text
+    const jsonMatch = cleaned.match(/\[[\s\S]*\]/);
+    if (!jsonMatch) {
+      throw new Error("No JSON array found in response.");
+    }
+    const parsed = JSON.parse(jsonMatch[0]);
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      throw new Error("Response was not a valid flashcard array.");
+    }
+    return parsed;
+  } catch (err) {
+    console.error("Flashcard parse error:", err, "\nRaw text:", text);
     throw new Error("Failed to parse generated flashcards. Please try again.");
   }
 }

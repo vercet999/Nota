@@ -1474,3 +1474,91 @@ body {
     0 0 0 2px rgba(232, 160, 48, 0.15),
     inset 0 2px 4px rgba(0, 0, 0, 0.02);
 }
+
+/* ── Mobile send button (visible only on mobile) ── */
+.mobile-send-btn {
+  display: none;
+}
+
+@media (max-width: 600px) {
+  .mobile-send-btn {
+    display: flex;
+    flex-shrink: 0;
+    color: var(--accent);
+  }
+
+  /* Sidebar must overlay the model switcher and everything else on mobile */
+  .left-sidebar.expanded {
+    z-index: 200 !important;
+  }
+
+  /* Mobile welcome input — 90% width, comfortable padding */
+  .welcome-input-container {
+    width: 90% !important;
+    max-width: 90% !important;
+    padding: 14px 14px !important;
+  }
+
+  .welcome-input-border {
+    gap: 8px !important;
+  }
+
+  .welcome-textarea {
+    font-size: 15px !important;
+    min-width: 0;
+  }
+
+  /* Input area in chat mode — full width on mobile */
+  .input-area {
+    padding: 0 10px 14px !important;
+  }
+
+  .chat-input-wrapper {
+    width: 100% !important;
+  }
+}
+
+/* ── Flashcard config custom dropdown trigger ── */
+.flashcard-config-trigger {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 14px;
+  border-radius: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+
+/* ── Textarea auto-grow — smooth height transition ── */
+.welcome-textarea,
+.message-input {
+  transition: height 0.1s ease;
+  overflow: hidden;
+}
+
+/* ── Welcome input → chat input slide animation ── */
+@keyframes slideToBottom {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+}
+
+/* ── Input area fade-in when chat starts ── */
+.input-area {
+  animation: fadeUp 0.25s ease-out;
+}
+
+/* ── Sidebar overlay backdrop on mobile ── */
+@media (max-width: 600px) {
+  .left-sidebar.expanded::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: -1;
+  }
+}

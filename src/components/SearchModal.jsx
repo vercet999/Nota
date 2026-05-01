@@ -18,8 +18,8 @@ export function SearchModal({ isOpen, onClose, messages, onSelectMessage }) {
   )
 
   return (
-    <div className="modal-overlay" style={{ zIndex: 100 }}>
-      <div className="modal-content" style={{ maxWidth: '600px', width: '90%', padding: '24px' }}>
+    <div className="modal-overlay" style={{ zIndex: 100 }} onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px', width: '90%', padding: '24px' }}>
         <button className="modal-close" onClick={onClose} aria-label="Close">
           <X size={20} />
         </button>

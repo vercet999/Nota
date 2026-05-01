@@ -37,9 +37,10 @@ export function HistoryDrawer({ isOpen, onClose, onLoadSession }) {
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay" style={{ zIndex: 100 }}>
+    <div className="modal-overlay" style={{ zIndex: 100 }} onClick={onClose}>
       <div
         className="modal-content"
+        onClick={(e) => e.stopPropagation()}
         style={{ maxWidth: "400px", width: "90%", padding: "24px" }}
       >
         <button className="modal-close" onClick={onClose} aria-label="Close">
