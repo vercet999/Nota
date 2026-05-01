@@ -914,7 +914,8 @@ body {
   gap: 12px;
 }
 
-.cancel-btn {
+.cancel-btn,
+.btn-secondary {
   background: none;
   border: 1px solid var(--border);
   color: var(--text-secondary);
@@ -925,12 +926,14 @@ body {
   transition: all 0.15s;
 }
 
-.cancel-btn:hover {
+.cancel-btn:hover,
+.btn-secondary:hover {
   border-color: var(--text-muted);
   color: var(--text-primary);
 }
 
-.save-btn {
+.save-btn,
+.btn-primary {
   background: var(--accent);
   border: none;
   color: var(--bg-base);
@@ -942,7 +945,8 @@ body {
   transition: all 0.15s;
 }
 
-.save-btn:hover {
+.save-btn:hover,
+.btn-primary:hover {
   background: #f0b040;
 }
 
