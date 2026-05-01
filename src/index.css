@@ -966,7 +966,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0 40px;
+  padding: 0 10px;
 }
 
 .welcome-typewriter-wrapper {
@@ -1242,8 +1242,8 @@ body {
   .mobile-sidebar-toggle {
     position: absolute;
     left: 12px;
-    background: var(--bg-surface);
-    border: 1px solid var(--border);
+    background: none;
+    border: 0;
     border-radius: var(--radius-sm);
     padding: 8px;
     display: flex;
@@ -1329,7 +1329,7 @@ body {
   }
 
   .quick-prompts {
-    padding: 0 16px 8px;
+   padding: 0 6px 8px;
     flex-wrap: nowrap;
     overflow-x: auto;
     justify-content: flex-start;
