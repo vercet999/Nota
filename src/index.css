@@ -966,7 +966,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0 40px;
+  padding: 0 10px;
 }
 
 .welcome-typewriter-wrapper {
@@ -1242,9 +1242,8 @@ body {
   .mobile-sidebar-toggle {
     position: absolute;
     left: 12px;
-    background: var(--bg-surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
+    background: none;
+    border: 0;
     padding: 8px;
     display: flex;
   }
@@ -1329,7 +1328,7 @@ body {
   }
 
   .quick-prompts {
-    padding: 0 16px 8px;
+    padding: 0 0 8px;
     flex-wrap: nowrap;
     overflow-x: auto;
     justify-content: flex-start;
@@ -1564,37 +1563,9 @@ body {
 }
 
 /* ── User CSS updates ────────────────────────────────────────────── */
-.welcome-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 0 40px;
-}
 
-@media (max-width: 600px) {
-  .mobile-sidebar-toggle {
-    position: absolute;
-    left: 12px;
-    background: var(--bg-surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 8px;
-    display: flex;
-  }
 
-  .quick-prompts {
-    padding: 0 16px 8px;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    justify-content: flex-start;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    width: 100%;
-    max-width: 100vw;
-  }
-}
+ 
 
 /* ── Sidebar header (Nota brand + toggle icon) ────────────────────── */
 .sidebar-header {
