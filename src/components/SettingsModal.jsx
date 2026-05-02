@@ -132,15 +132,15 @@ export function SettingsModal({
                 transition: "border-color 0.15s",
               }}
             >
-              <FolderOpen size={16} /> Manage Chats — view, pin, archive, delete
+              <FolderOpen size={16} /> Manage Chats — view, delete
             </button>
           </div>
 
-          <div className="modal-actions">
-            <button type="button" className="cancel-btn" onClick={onClose}>
+          <div className="modal-actions" style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '24px' }}>
+            <button type="button" className="btn-secondary" onClick={onClose} style={{ padding: '8px 16px' }}>
               Cancel
             </button>
-            <button type="submit" className="save-btn">
+            <button type="submit" className="btn-primary" style={{ padding: '8px 16px' }}>
               Save
             </button>
           </div>

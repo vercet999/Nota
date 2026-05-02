@@ -16,6 +16,14 @@ export function FileUpload({ onFileUpload, uploadedFileName, isLoading }) {
       alert('Only PDF and .txt files are supported.')
       return
     }
+    
+    // Cap file size at 10MB (10 * 1024 * 1024 bytes)
+    const MAX_FILE_SIZE = 10 * 1024 * 1024;
+    if (file.size > MAX_FILE_SIZE) {
+      alert(`File is too large. Max allowed size is 10MB.`);
+      return;
+    }
+
     onFileUpload(file)
   }
 

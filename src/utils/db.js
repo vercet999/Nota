@@ -49,15 +49,13 @@ export async function saveMessage(sessionId, role, content) {
 }
 
 export async function saveDocument(sessionId, fileName, extractedText) {
-  const { data, error } = await supabase
-    .from("documents")
-    .insert([
-      {
-        session_id: sessionId,
-        file_name: fileName,
-        extracted_text: extractedText,
-      },
-    ]);
+  const { data, error } = await supabase.from("documents").insert([
+    {
+      session_id: sessionId,
+      file_name: fileName,
+      extracted_text: extractedText,
+    },
+  ]);
 
   if (error) {
     console.error("Error saving document:", error);
@@ -70,8 +68,6 @@ export async function getSessions() {
   const { data, error } = await supabase
     .from("sessions")
     .select("*")
-    .eq("archived", false)
-    .order("pinned", { ascending: false })
     .order("updated_at", { ascending: false })
     .limit(20);
 
@@ -79,45 +75,8 @@ export async function getSessions() {
     console.error("Error fetching sessions:", error);
     throw error;
   }
+
   return data;
-}
-
-export async function getArchivedSessions() {
-  const { data, error } = await supabase
-    .from("sessions")
-    .select("*")
-    .eq("archived", true)
-    .order("updated_at", { ascending: false });
-
-  if (error) {
-    console.error("Error fetching archived sessions:", error);
-    throw error;
-  }
-  return data;
-}
-
-export async function pinSession(sessionId, pinned) {
-  const { error } = await supabase
-    .from("sessions")
-    .update({ pinned })
-    .eq("id", sessionId);
-
-  if (error) {
-    console.error("Error pinning session:", error);
-    throw error;
-  }
-}
-
-export async function archiveSession(sessionId, archived) {
-  const { error } = await supabase
-    .from("sessions")
-    .update({ archived })
-    .eq("id", sessionId);
-
-  if (error) {
-    console.error("Error archiving session:", error);
-    throw error;
-  }
 }
 
 export async function getSessionMessages(sessionId) {

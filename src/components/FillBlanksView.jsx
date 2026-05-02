@@ -235,7 +235,7 @@ export function FillBlanksView({ uploadedFiles, messages, modelId }) {
                 <label className="flashcard-config-label"><Target size={16} style={{ color: "var(--accent)" }} /> Topic Focus (Optional):</label>
                 <input type="text" className="flashcard-config-input" placeholder="e.g. Media Theory, Ethics..." value={topicFocus} onChange={(e) => setTopicFocus(e.target.value)} />
               </div>
-              <button className="flashcard-config-submit" onClick={handleGenerate} disabled={isLoading}>
+              <button className="btn-primary" onClick={handleGenerate} disabled={isLoading} style={{ width: "100%", justifyContent: "center", padding: "12px", border: "none", borderRadius: "10px", marginTop: "16px", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px" }}>
                 {isLoading ? (<><RefreshCw size={18} className="animate-spin" /> Generating Exercises...</>) : (<><BrainCircuit size={18} /> Start Fill-in-the-Blanks</>)}
               </button>
               {error && <div className="error-banner">{error}</div>}

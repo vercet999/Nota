@@ -36,11 +36,18 @@ async function extractFromPDF(file) {
 
   let fullText = ''
 
-  for (let i = 1; i <= pdf.numPages; i++) {
+  const MAX_PAGES = 50;
+  const numPagesToExtract = Math.min(pdf.numPages, MAX_PAGES);
+
+  for (let i = 1; i <= numPagesToExtract; i++) {
     const page = await pdf.getPage(i)
     const textContent = await page.getTextContent()
     const pageText = textContent.items.map((item) => item.str).join(' ')
     fullText += `\n[Page ${i}]\n${pageText}\n`
+  }
+
+  if (pdf.numPages > MAX_PAGES) {
+    fullText += `\n\n[Warning: PDF exceeded ${MAX_PAGES} pages. Only the first ${MAX_PAGES} pages were extracted to maintain performance.]\n`;
   }
 
   return fullText.trim()
