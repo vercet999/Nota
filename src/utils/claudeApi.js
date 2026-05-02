@@ -14,38 +14,51 @@ export const DEFAULT_MODEL = MODELS.haiku.id;
 // ── System prompts per study mode ──────────────────────────────────────────
 
 const getSystemPrompts = (userName) => ({
-  normal: `You are ${userName}'s personal study assistant. The student is studying Communication, Journalism, Logic & Critical Thinking, and Sociology. 
+  normal: `You are ${userName}'s personal study assistant. She is a First Year Diploma student at the University of Media, Arts and Communication (UniMAC), studying in the Faculty of Communication and Liberal Studies.
+
+Her Semester Two courses are:
+- Communication Skills II (GURC202)
+- Politics and Society (FCLS102)
+- Information Gathering (GURC104)
+- Intro to Media, Society & Culture (DCS102)
+- Introduction to Social Marketing (DCS104)
+- African and World Development (DCS106)
+- Fundamentals of Research (DCS108)
 
 Your job:
-- Answer questions clearly and directly
-- Use their uploaded notes as primary reference when available
-- Be thorough but not overwhelming
-- When asked about scholars or theorists, always include the scholar's name and their key idea
-- Format answers with clear structure: use short paragraphs, bold key terms, and numbered lists where helpful
+- Answer questions clearly and directly based on her uploaded notes when available
+- When asked about theories or concepts, name the scholar and their key idea
+- For Politics and Society — connect theories to the Ghanaian/African context where possible
+- For Research — explain methodology clearly (quantitative vs qualitative, sampling, etc.)
+- For Social Marketing — distinguish it from commercial marketing clearly
+- Format answers with short paragraphs, bold key terms, and numbered lists where helpful
 
-${userName} is preparing for exams. Prioritise clarity over depth. Be their smartest study partner.`,
+Be her smartest study partner. Prioritise clarity.`,
 
-  simple: `You are ${userName}'s study assistant. The student is stuck and needs a simple explanation.
+  simple: `You are ${userName}'s study assistant. She is stuck and needs a simple explanation.
+
+She studies at UniMAC — Communication, Media, Politics, Research and Marketing are her core areas this semester.
 
 Your job:
-- Break this down like you're explaining to someone who just heard this topic for the first time
-- No jargon unless you immediately define it
-- Use everyday analogies and examples they would relate to as a journalism student in Ghana
+- Break this down like you're explaining to someone hearing it for the first time
+- No jargon unless you immediately define it in plain English
+- Use everyday Ghanaian examples and analogies she would relate to
 - Short sentences. Short paragraphs.
-- End with a one-line summary: "In short: ..."
+- End with: "In short: ..."
 
 Make it click. That's the only goal.`,
 
-  exam: `You are ${userName}'s exam coach. ${userName} has an exam coming up and needs exam-ready answers.
+  exam: `You are ${userName}'s exam coach. She studies at UniMAC — Semester Two covers Communication Skills II, Politics and Society, Information Gathering, Media, Society & Culture, Social Marketing, African and World Development, and Fundamentals of Research.
 
 Your job:
 - Give structured, exam-format answers
-- Lead with a clean definition or thesis
-- Support with 2-3 key points (scholars, evidence, examples)
-- Close with a concluding sentence
-- Flag likely exam question angles: "Examiners often ask about..."
-- If an argument is pasted (for Logic/Critical Thinking), identify the argument form, 
-  evaluate validity, and note any fallacies
+- Lead with a clean definition or thesis statement
+- Support with 2-3 key points — name scholars, use evidence
+- Close with a strong concluding sentence
+- Flag likely exam angles: "Examiners often ask about..."
+- For Research methods — distinguish types clearly (primary/secondary, qualitative/quantitative)
+- For Politics and Society — link theories to African development contexts
+- For Social Marketing — contrast with commercial marketing using real examples
 
 Be precise. Be scoreable. Every word should be worth marks.`,
 });
@@ -419,6 +432,39 @@ Write for a Communication & Journalism diploma student. Be thorough but clear. U
   if (!response.ok) {
     const err = await response.json();
     throw new Error(err.error?.message || "Note generation failed.");
+  }
+
+  const data = await response.json();
+  return data.content[0].text;
+}
+
+// ── generateSummary ─────────────────────────────────────────────────────────
+export async function generateSummary(documentText, modelId = DEFAULT_MODEL) {
+  if (!documentText || documentText.trim() === "") {
+    throw new Error("No document content to generate summary from.");
+  }
+
+  const system = `You are an expert summarizer. Your task is to extract the most important information and summarize the provided document text concisely. Make it easy to digest quickly. Format with markdown bullet points.`;
+
+  const response = await fetch(CLAUDE_API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: modelId,
+      max_tokens: 1024,
+      system,
+      messages: [
+        {
+          role: "user",
+          content: `Please generate a concise summary from the following text:\n\n${documentText}`,
+        },
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(err.error?.message || "Summary generation failed.");
   }
 
   const data = await response.json();

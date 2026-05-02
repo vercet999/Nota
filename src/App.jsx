@@ -536,6 +536,22 @@ export default function App() {
                             uploadedFileName={uploadedFileName}
                             isLoading={isLoading}
                           />
+                          <button
+                            onClick={() => {
+                              sendUserMessage("Please summarize my uploaded notes.");
+                              setShowActionMenu(false);
+                            }}
+                            className="btn-secondary"
+                            style={{
+                              width: "100%",
+                              justifyContent: "center",
+                              display: "flex",
+                              gap: "8px",
+                              alignItems: "center",
+                            }}
+                          >
+                            <FileText size={16} /> Summarize My Notes
+                          </button>
                         </div>
                       )}
                     </div>
@@ -684,6 +700,22 @@ export default function App() {
                           uploadedFileName={uploadedFileName}
                           isLoading={isLoading}
                         />
+                        <button
+                          onClick={() => {
+                            sendUserMessage("Please summarize my uploaded notes.");
+                            setShowActionMenu(false);
+                          }}
+                          className="btn-secondary"
+                          style={{
+                            width: "100%",
+                            justifyContent: "center",
+                            display: "flex",
+                            gap: "8px",
+                            alignItems: "center",
+                          }}
+                        >
+                          <FileText size={16} /> Summarize My Notes
+                        </button>
                       </div>
                     )}
                   </div>

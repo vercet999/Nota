@@ -170,6 +170,54 @@ export async function deleteNote(id) {
   }
 }
 
+// ── Summaries ─────────────────────────────────────────────────────────────
+
+export async function getSummaries() {
+  const { data, error } = await supabase
+    .from("summaries")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.warn("Summaries table may not exist, falling back to localStorage:", error);
+    const local = localStorage.getItem("nota_summaries");
+    return local ? JSON.parse(local) : [];
+  }
+  return data;
+}
+
+export async function saveSummary(title, content) {
+  const { data, error } = await supabase
+    .from("summaries")
+    .insert([{ title, content }])
+    .select()
+    .single();
+
+  if (error) {
+    console.warn("Summaries table error, using localStorage:", error);
+    const local = localStorage.getItem("nota_summaries");
+    let parsed = local ? JSON.parse(local) : [];
+    const newSummary = { id: crypto.randomUUID(), title, content, created_at: new Date().toISOString() };
+    parsed.unshift(newSummary);
+    localStorage.setItem("nota_summaries", JSON.stringify(parsed));
+    return newSummary;
+  }
+  return data;
+}
+
+export async function deleteSummary(id) {
+  const { error } = await supabase.from("summaries").delete().eq("id", id);
+  if (error) {
+    console.warn("Summaries table delete error, using localStorage:", error);
+    const local = localStorage.getItem("nota_summaries");
+    if (local) {
+      let parsed = JSON.parse(local);
+      parsed = parsed.filter(n => n.id !== id);
+      localStorage.setItem("nota_summaries", JSON.stringify(parsed));
+    }
+  }
+}
+
 
 /**
  * Upload the raw file to Supabase Storage bucket "nota-files".
