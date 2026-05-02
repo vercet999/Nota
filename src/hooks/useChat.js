@@ -15,6 +15,7 @@ import {
   updateSessionTitle,
   saveMessage,
   saveDocument,
+  uploadFileToStorage,
   getSessionMessages,
   getSessionDocuments,
 } from "../utils/db";
@@ -164,13 +165,21 @@ export function useChat() {
         setUploadedFileName(file.name);
 
         if (sessionId) {
-          await saveDocument(sessionId, file.name, text);
+          // Try uploading raw file to Supabase Storage; fall back to text-only if it fails
+          let fileUrl = null;
+          try {
+            fileUrl = await uploadFileToStorage(file, sessionId);
+          } catch (storageErr) {
+            console.warn("Storage upload failed, saving text only:", storageErr);
+          }
+          const ext = file.name.split(".").pop().toLowerCase();
+          await saveDocument(sessionId, file.name, text, fileUrl, ext);
         }
 
         // Add a system-style message to the chat so she knows it worked
         const sysMsg = `I've loaded **${file.name}**. I can now answer questions based on its content. What would you like to know?`;
         if (sessionId) {
-          await saveMessage(sessionId, "assistant", sysMsg);
+          await saveMessage(sessionId, "assistant", sysMsg).catch(() => {});
         }
         setMessages((prev) => [
           ...prev,
@@ -188,6 +197,25 @@ export function useChat() {
     },
     [sessionId],
   );
+
+  // ── Load a saved document back into context (from Files Library) ───────────
+  const loadDocumentIntoContext = useCallback((fileName, text) => {
+    setDocumentContext(text);
+    setUploadedFileName(fileName);
+    setUploadedFiles((prev) => {
+      const exists = prev.find((f) => f.name === fileName);
+      if (exists) return prev;
+      return [...prev, { id: crypto.randomUUID(), name: fileName, text }];
+    });
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: `📂 I've loaded **${fileName}** from your files library. Ask me anything about it.`,
+      },
+    ]);
+  }, []);
 
   // ── Clear everything for a fresh session ──────────────────────────────────
   const clearSession = useCallback(() => {
@@ -213,6 +241,7 @@ export function useChat() {
     documentContext,
     sendUserMessage,
     handleFileUpload,
+    loadDocumentIntoContext,
     clearSession,
     loadSession,
   };

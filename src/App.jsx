@@ -20,6 +20,7 @@ import {
   Newspaper,
   Library,
   BrainCircuit,
+  NotebookPen,
 } from "lucide-react";
 import { useChat } from "./hooks/useChat";
 import { ChatWindow } from "./components/ChatWindow";
@@ -30,6 +31,7 @@ import { TypewriterWelcome } from "./components/TypewriterWelcome";
 import { FlashcardsView } from "./components/FlashcardsView";
 import { PracticeQuizView } from "./components/PracticeQuizView";
 import { FillBlanksView } from "./components/FillBlanksView";
+import { NotesView } from "./components/NotesView";
 import { SearchModal } from "./components/SearchModal";
 import { UploadedFilesModal } from "./components/UploadedFilesModal";
 import { HistoryDrawer } from "./components/HistoryDrawer";
@@ -141,6 +143,7 @@ export default function App() {
     documentContext,
     sendUserMessage,
     handleFileUpload,
+    loadDocumentIntoContext,
     clearSession,
     loadSession,
   } = useChat();
@@ -350,6 +353,15 @@ export default function App() {
               <span className="sidebar-item-label">Search</span>
             </button>
             <button
+              className={`sidebar-item ${activeView === "notes" ? "active" : ""}`}
+              onClick={() => setActiveView("notes")}
+            >
+              <span className="sidebar-item-icon">
+                <NotebookPen size={20} strokeWidth={1.5} />
+              </span>
+              <span className="sidebar-item-label">Notes</span>
+            </button>
+            <button
               className={`sidebar-item ${activeView === "flashcards" ? "active" : ""}`}
               onClick={() => setActiveView("flashcards")}
             >
@@ -442,7 +454,12 @@ export default function App() {
           <div style={{ width: 32 }}></div>
         </div>
         <div className="app-container">
-          {activeView === "flashcards" ? (
+          {activeView === "notes" ? (
+            <NotesView
+              onBack={() => setActiveView("chat")}
+              modelId={selectedModel}
+            />
+          ) : activeView === "flashcards" ? (
             <FlashcardsView
               onBack={() => setActiveView("chat")}
               uploadedFiles={uploadedFiles}
@@ -753,6 +770,8 @@ export default function App() {
         isOpen={isFilesModalOpen}
         onClose={() => setIsFilesModalOpen(false)}
         uploadedFiles={uploadedFiles}
+        onLoadIntoContext={loadDocumentIntoContext}
+        modelId={selectedModel}
       />
 
     </div>

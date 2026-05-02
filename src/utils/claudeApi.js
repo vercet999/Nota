@@ -366,3 +366,61 @@ Note: Use '___' (three underscores) for the blank in the sentence. Keep answers 
     throw new Error("Failed to parse generated fill-in-the-blanks. Please try again.");
   }
 }
+
+// ── generateNotes ─────────────────────────────────────────────────────────────
+// Takes document text (PDF, PPTX, DOCX, TXT, transcription)
+// Returns structured study notes as markdown.
+export async function generateNotes(documentText, modelId = DEFAULT_MODEL) {
+  if (!documentText || documentText.trim() === "") {
+    throw new Error("No document content to generate notes from.");
+  }
+
+  const system = `You are an expert study notes writer. Transform raw documents — lecture slides, transcriptions, PDFs, or any study material — into clean, well-structured study notes.
+
+Format your notes using this exact structure:
+
+## 📌 Overview
+One paragraph summarising the main topic and purpose of the material.
+
+## 🔑 Key Concepts
+For each major concept:
+**Concept Name** — clear, concise definition or explanation.
+
+## 👤 Key Figures / Scholars (if any)
+**Name** — their main idea or contribution relevant to this topic.
+
+## 📖 Detailed Notes
+Organised by topic/section. Use sub-headings, bullet points, and bold key terms.
+
+## ❓ Likely Exam Questions
+5 questions an examiner would most likely ask, based on this material.
+
+## 🗂️ Summary
+A short 3-5 sentence summary she can read the night before an exam.
+
+Write for a Communication & Journalism diploma student. Be thorough but clear. Use markdown formatting throughout.`;
+
+  const response = await fetch(CLAUDE_API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: modelId,
+      max_tokens: 2048,
+      system,
+      messages: [
+        {
+          role: "user",
+          content: `Please generate comprehensive study notes from the following document:\n\n${documentText}`,
+        },
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(err.error?.message || "Note generation failed.");
+  }
+
+  const data = await response.json();
+  return data.content[0].text;
+}

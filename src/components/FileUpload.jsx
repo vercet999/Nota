@@ -11,9 +11,19 @@ export function FileUpload({ onFileUpload, uploadedFileName, isLoading }) {
 
   const handleFile = (file) => {
     if (!file) return
-    const allowed = ['application/pdf', 'text/plain']
-    if (!allowed.includes(file.type)) {
-      alert('Only PDF and .txt files are supported.')
+    const name = file.name.toLowerCase()
+    const ext = name.split('.').pop()
+    const allowedExts = ['pdf', 'txt', 'docx', 'doc', 'pptx']
+    const allowedTypes = [
+      'application/pdf', 
+      'text/plain',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+    ]
+    
+    if (!allowedExts.includes(ext) && !allowedTypes.includes(file.type)) {
+      alert('Only PDF, TXT, DOCX, DOC, and PPTX files are supported.')
       return
     }
     
@@ -45,7 +55,7 @@ export function FileUpload({ onFileUpload, uploadedFileName, isLoading }) {
       <input
         ref={inputRef}
         type="file"
-        accept=".pdf,.txt"
+        accept=".pdf,.txt,.docx,.doc,.pptx"
         style={{ display: 'none' }}
         onChange={(e) => handleFile(e.target.files[0])}
       />
@@ -59,7 +69,7 @@ export function FileUpload({ onFileUpload, uploadedFileName, isLoading }) {
       ) : (
         <div className="file-prompt">
           <span className="upload-icon">⬆</span>
-          <span>{isDragging ? 'Drop it here' : 'Upload notes (PDF or .txt)'}</span>
+          <span>{isDragging ? 'Drop it here' : 'Upload notes (PDF, DOCX, PPTX, TXT)'}</span>
         </div>
       )}
     </div>
