@@ -68,8 +68,7 @@ export function FileUpload({ onFileUpload, uploadedFileName, isLoading }) {
         </div>
       ) : (
         <div className="file-prompt">
-          <span className="upload-icon">⬆</span>
-          <span>{isDragging ? 'Drop it here' : 'Upload notes (PDF, DOCX, PPTX, TXT)'}</span>
+          <span>{isDragging ? 'Drop it here' : 'Upload (PDF, DOCX, PPTX, TXT)'}</span>
         </div>
       )}
     </div>

@@ -621,12 +621,18 @@ body {
   color: var(--text-muted);
   transition: all 0.15s;
   white-space: nowrap;
+  justify-content: center;
 }
 
 .file-upload:hover,
 .file-upload.dragging {
   border-color: var(--accent-dim);
   color: var(--text-secondary);
+}
+
+.file-prompt span {
+    text-align: center;
+    justify-content: center;
 }
 
 .file-upload.has-file {
