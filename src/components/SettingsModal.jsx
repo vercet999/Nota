@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X } from "lucide-react";
+import { X, FolderOpen } from "lucide-react";
 
 export const COLORS = {
   neutral: [
@@ -24,6 +24,7 @@ export function SettingsModal({
   currentName,
   currentColor,
   onSave,
+  onManageChats,
 }) {
   const [nameInput, setNameInput] = useState(currentName);
   const [colorInput, setColorInput] = useState(currentColor || "#e8a030");
@@ -105,6 +106,34 @@ export function SettingsModal({
             </label>
             {renderColorOptions("Neutral Options", COLORS.neutral)}
             {renderColorOptions("Feminine Options", COLORS.feminine)}
+          </div>
+
+          <div className="form-group" style={{ borderTop: "1px solid var(--border)", paddingTop: "20px", marginTop: "4px" }}>
+            <label style={{ display: "block", fontSize: "13px", color: "var(--text-secondary)", marginBottom: "10px" }}>
+              Chat History
+            </label>
+            <button
+              type="button"
+              onClick={() => { onClose(); onManageChats(); }}
+              style={{
+                width: "100%",
+                padding: "10px 16px",
+                background: "var(--bg-raised)",
+                border: "1px solid var(--border)",
+                borderRadius: "8px",
+                color: "var(--text-primary)",
+                fontFamily: "var(--font-body)",
+                fontSize: "14px",
+                cursor: "pointer",
+                textAlign: "left",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                transition: "border-color 0.15s",
+              }}
+            >
+              <FolderOpen size={16} /> Manage Chats — view, pin, archive, delete
+            </button>
           </div>
 
           <div className="modal-actions">

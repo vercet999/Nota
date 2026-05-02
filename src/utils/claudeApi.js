@@ -231,3 +231,138 @@ Output format MUST be JSON like this, with NO markdown formatting, NO \`\`\`json
     throw new Error("Failed to parse generated flashcards. Please try again.");
   }
 }
+
+export async function generatePracticeQuiz(
+  documentContext,
+  modelId = DEFAULT_MODEL,
+  numQuestions = 5,
+  topicFocus = ""
+) {
+  let topicInstruction = "";
+  if (topicFocus && topicFocus.trim()) {
+    topicInstruction = `Specifically focus on these topics: "${topicFocus.trim()}".`;
+  }
+
+  const systemPrompt = `You are an expert study assistant. Generate a multiple-choice practice quiz based on the provided text. Return strictly a JSON array of objects.
+  
+${topicInstruction}
+
+Output format MUST be JSON like this, with NO markdown formatting, NO \`\`\`json blocks, and NO extra text:
+[
+  { 
+    "question": "Question text here?", 
+    "options": ["Option A", "Option B", "Option C", "Option D"], 
+    "correctAnswer": "Option B", 
+    "explanation": "Explanation for why Option B is correct." 
+  }
+]
+Note: Ensure the 'correctAnswer' exactly matches one of the strings in the 'options' array.`;
+
+  const inputMessage = documentContext
+    ? `Here is the material to base the quiz on:\n\n${documentContext}\n\nGenerate EXACTLY ${numQuestions} questions.`
+    : `I don't have notes uploaded right now. Create EXACTLY ${numQuestions} general knowledge questions on Logic & Critical Thinking.`;
+
+  const response = await fetch(CLAUDE_API_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: modelId,
+      max_tokens: 2048,
+      system: systemPrompt,
+      messages: [{ role: "user", content: inputMessage }],
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(
+      error.error?.message || "API call failed. Check your key and try again.",
+    );
+  }
+
+  const data = await response.json();
+  const text = data.content[0].text.trim();
+
+  try {
+    const cleaned = text.replace(/```json/gi, "").replace(/```/g, "").trim();
+    const jsonMatch = cleaned.match(/\[[\s\S]*\]/);
+    if (!jsonMatch) throw new Error("No JSON array found in response.");
+    const parsed = JSON.parse(jsonMatch[0]);
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      throw new Error("Response was not a valid quiz array.");
+    }
+    return parsed;
+  } catch (err) {
+    console.error("Quiz parse error:", err, "\nRaw text:", text);
+    throw new Error("Failed to parse generated quiz. Please try again.");
+  }
+}
+
+export async function generateFillBlanks(
+  documentContext,
+  modelId = DEFAULT_MODEL,
+  numItems = 5,
+  topicFocus = ""
+) {
+  let topicInstruction = "";
+  if (topicFocus && topicFocus.trim()) {
+    topicInstruction = `Specifically focus on these topics: "${topicFocus.trim()}".`;
+  }
+
+  const systemPrompt = `You are an expert study assistant. Generate fill-in-the-blanks challenges based on the provided text. Return strictly a JSON array of objects.
+  
+${topicInstruction}
+
+Output format MUST be JSON like this, with NO markdown formatting, NO \`\`\`json blocks, and NO extra text:
+[
+  { 
+    "sentence": "The cell ___ regulates what enters and exits.", 
+    "answer": "membrane", 
+    "hint": "Outer layer of the cell" 
+  }
+]
+Note: Use '___' (three underscores) for the blank in the sentence. Keep answers to 1-3 words.`;
+
+  const inputMessage = documentContext
+    ? `Here is the material to base the exercises on:\n\n${documentContext}\n\nGenerate EXACTLY ${numItems} fill-in-the-blanks sentences.`
+    : `I don't have notes uploaded right now. Create EXACTLY ${numItems} general fill-in-the-blanks sentences on Communications.`;
+
+  const response = await fetch(CLAUDE_API_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: modelId,
+      max_tokens: 2048,
+      system: systemPrompt,
+      messages: [{ role: "user", content: inputMessage }],
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(
+      error.error?.message || "API call failed. Check your key and try again.",
+    );
+  }
+
+  const data = await response.json();
+  const text = data.content[0].text.trim();
+
+  try {
+    const cleaned = text.replace(/```json/gi, "").replace(/```/g, "").trim();
+    const jsonMatch = cleaned.match(/\[[\s\S]*\]/);
+    if (!jsonMatch) throw new Error("No JSON array found in response.");
+    const parsed = JSON.parse(jsonMatch[0]);
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      throw new Error("Response was not a valid fill-in-the-blanks array.");
+    }
+    return parsed;
+  } catch (err) {
+    console.error("Fill-blanks parse error:", err, "\nRaw text:", text);
+    throw new Error("Failed to parse generated fill-in-the-blanks. Please try again.");
+  }
+}

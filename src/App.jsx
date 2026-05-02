@@ -19,6 +19,7 @@ import {
   Key,
   Newspaper,
   Library,
+  BrainCircuit,
 } from "lucide-react";
 import { useChat } from "./hooks/useChat";
 import { ChatWindow } from "./components/ChatWindow";
@@ -27,6 +28,8 @@ import { FileUpload } from "./components/FileUpload";
 import { SettingsModal } from "./components/SettingsModal";
 import { TypewriterWelcome } from "./components/TypewriterWelcome";
 import { FlashcardsView } from "./components/FlashcardsView";
+import { PracticeQuizView } from "./components/PracticeQuizView";
+import { FillBlanksView } from "./components/FillBlanksView";
 import { SearchModal } from "./components/SearchModal";
 import { UploadedFilesModal } from "./components/UploadedFilesModal";
 import { HistoryDrawer } from "./components/HistoryDrawer";
@@ -83,7 +86,7 @@ export default function App() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isFilesModalOpen, setIsFilesModalOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-  const [isFlashcardsOpen, setIsFlashcardsOpen] = useState(false);
+  const [activeView, setActiveView] = useState("chat"); // 'chat' | 'flashcards' | 'quiz' | 'fill-blanks'
   const [showActionMenu, setShowActionMenu] = useState(false);
   const [showModelDropdown, setShowModelDropdown] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -329,7 +332,7 @@ export default function App() {
               className="sidebar-item"
               onClick={() => {
                 clearSession();
-                setIsFlashcardsOpen(false);
+                setActiveView("chat");
               }}
             >
               <span className="sidebar-item-icon">
@@ -347,13 +350,31 @@ export default function App() {
               <span className="sidebar-item-label">Search</span>
             </button>
             <button
-              className="sidebar-item"
-              onClick={() => setIsFlashcardsOpen(true)}
+              className={`sidebar-item ${activeView === "flashcards" ? "active" : ""}`}
+              onClick={() => setActiveView("flashcards")}
             >
               <span className="sidebar-item-icon">
                 <Library size={20} strokeWidth={1.5} />
               </span>
               <span className="sidebar-item-label">Flashcards</span>
+            </button>
+            <button
+              className={`sidebar-item ${activeView === "quiz" ? "active" : ""}`}
+              onClick={() => setActiveView("quiz")}
+            >
+              <span className="sidebar-item-icon">
+                <BrainCircuit size={20} strokeWidth={1.5} />
+              </span>
+              <span className="sidebar-item-label">Practice Quiz</span>
+            </button>
+            <button
+              className={`sidebar-item ${activeView === "fill-blanks" ? "active" : ""}`}
+              onClick={() => setActiveView("fill-blanks")}
+            >
+              <span className="sidebar-item-icon">
+                <FileText size={20} strokeWidth={1.5} />
+              </span>
+              <span className="sidebar-item-label">Fill in Blanks</span>
             </button>
             <button
               className="sidebar-item"
@@ -372,7 +393,7 @@ export default function App() {
             isOpen={isSidebarOpen}
             onLoadSession={(id) => {
               loadSession(id);
-              setIsFlashcardsOpen(false);
+              setActiveView("chat");
               setIsSidebarOpen(false);
             }}
           />
@@ -421,13 +442,25 @@ export default function App() {
           <div style={{ width: 32 }}></div>
         </div>
         <div className="app-container">
-          {isFlashcardsOpen ? (
+          {activeView === "flashcards" ? (
             <FlashcardsView
-              onBack={() => setIsFlashcardsOpen(false)}
+              onBack={() => setActiveView("chat")}
               uploadedFiles={uploadedFiles}
               messages={messages}
               modelId={selectedModel}
               onLoadSession={loadSession}
+            />
+          ) : activeView === "quiz" ? (
+            <PracticeQuizView
+              uploadedFiles={uploadedFiles}
+              messages={messages}
+              modelId={selectedModel}
+            />
+          ) : activeView === "fill-blanks" ? (
+            <FillBlanksView
+              uploadedFiles={uploadedFiles}
+              messages={messages}
+              modelId={selectedModel}
             />
           ) : messages.length === 0 ? (
             <div className="welcome-screen">
@@ -698,6 +731,12 @@ export default function App() {
         currentName={userName}
         currentColor={accentColor}
         onSave={handleSaveSettings}
+        onManageChats={() => setIsHistoryOpen(true)}
+      />
+      <HistoryDrawer
+        isOpen={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
+        onLoadSession={(id) => { loadSession(id); setActiveView("chat"); }}
       />
 
       <SearchModal
