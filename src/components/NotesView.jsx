@@ -1,11 +1,64 @@
 import { useState, useEffect } from "react";
-import { NotebookPen, Plus, Trash2, Download, FileText, MessageSquare, Loader2, ArrowLeft } from "lucide-react";
+import { NotebookPen, Plus, Trash2, Download, FileText, MessageSquare, Loader2, ArrowLeft, Search } from "lucide-react";
 import { getNotes, deleteNote, saveNote, getSummaries, deleteSummary, saveSummary, getAllDocuments, getSessions, getSessionMessages } from "../utils/db";
 import { generateNotes, generateSummary } from "../utils/claudeApi";
 import ReactMarkdown from "react-markdown";
+import JSZip from "jszip";
+import { Document, Packer, Paragraph, TextRun, HeadingLevel } from "docx";
+
+const convertMarkdownToDocxBlob = async (markdownText) => {
+  const lines = markdownText.split("\n");
+  const children = [];
+
+  for (const line of lines) {
+    if (line.trim() === "") {
+       children.push(new Paragraph({ text: "" }));
+       continue;
+    }
+    
+    let isHeading = false;
+    let headingLevel = null;
+    let textToParse = line;
+    let bullet = false;
+
+    if (line.startsWith("### ")) {
+       isHeading = true; headingLevel = HeadingLevel.HEADING_3; textToParse = line.slice(4);
+    } else if (line.startsWith("## ")) {
+       isHeading = true; headingLevel = HeadingLevel.HEADING_2; textToParse = line.slice(3);
+    } else if (line.startsWith("# ")) {
+       isHeading = true; headingLevel = HeadingLevel.HEADING_1; textToParse = line.slice(2);
+    } else if (line.trim().startsWith("- ")) {
+       bullet = { level: 0 };
+       textToParse = line.trim().slice(2);
+    }
+
+    const textRuns = [];
+    const parts = textToParse.split(/(\*\*.*?\*\*)/g);
+    for (const part of parts) {
+      if (part.startsWith("**") && part.endsWith("**")) {
+        textRuns.push(new TextRun({ text: part.slice(2, -2), bold: true }));
+      } else {
+        textRuns.push(new TextRun({ text: part }));
+      }
+    }
+
+    const pOptions = { children: textRuns };
+    if (isHeading) pOptions.heading = headingLevel;
+    if (bullet) pOptions.bullet = bullet;
+    
+    children.push(new Paragraph(pOptions));
+  }
+
+  const doc = new Document({
+    sections: [{ children }],
+  });
+
+  return await Packer.toBlob(doc);
+};
 
 export function NotesView({ onBack, modelId }) {
   const [activeTab, setActiveTab] = useState("notes"); // 'notes' | 'summaries'
+  const [searchQuery, setSearchQuery] = useState("");
   
   const [notes, setNotes] = useState([]);
   const [summaries, setSummaries] = useState([]);
@@ -144,6 +197,47 @@ export function NotesView({ onBack, modelId }) {
     URL.revokeObjectURL(url);
   };
 
+  const handleExportAll = async () => {
+    const itemsToExport = activeTab === "notes" ? notes : summaries;
+    if (!itemsToExport || itemsToExport.length === 0) {
+      alert(`No ${activeTab} to export.`);
+      return;
+    }
+
+    try {
+      const zip = new JSZip();
+
+      for (const item of itemsToExport) {
+        const docxBlob = await convertMarkdownToDocxBlob(item.content);
+        const fileName = `${item.title.replace(/[\/\?<>\\:\*\|"]/g, "_")}.docx`;
+        zip.file(fileName, docxBlob);
+      }
+
+      const zipBlob = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(zipBlob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `All_${activeTab === "notes" ? "Notes" : "Summaries"}.zip`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Export failed:", err);
+      alert("Failed to export all items.");
+    }
+  };
+
+  const getFilteredItems = () => {
+    const items = activeTab === "notes" ? notes : summaries;
+    if (!searchQuery.trim()) return items;
+    const lowerQuery = searchQuery.toLowerCase();
+    return items.filter(
+      (item) =>
+        item.title.toLowerCase().includes(lowerQuery) ||
+        item.content.toLowerCase().includes(lowerQuery)
+    );
+  };
+  const filteredItems = getFilteredItems();
+
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%" }}>
       {/* Header */}
@@ -157,13 +251,22 @@ export function NotesView({ onBack, modelId }) {
             Study {activeTab === "notes" ? "Notes" : "Summaries"}
           </div>
         </div>
-        <button 
-          className="btn-primary" 
-          style={{ padding: "6px 12px", gap: "6px", fontSize: "13px" }} 
-          onClick={handleCreateNew}
-        >
-          <Plus size={14} /> New {activeTab === "notes" ? "Note" : "Summary"}
-        </button>
+        <div style={{ display: "flex", gap: "8px" }}>
+          <button 
+            className="btn-secondary" 
+            style={{ padding: "6px 12px", gap: "6px", fontSize: "13px" }} 
+            onClick={handleExportAll}
+          >
+            <Download size={14} /> Export All
+          </button>
+          <button 
+            className="btn-primary" 
+            style={{ padding: "6px 12px", gap: "6px", fontSize: "13px" }} 
+            onClick={handleCreateNew}
+          >
+            <Plus size={14} /> New {activeTab === "notes" ? "Note" : "Summary"}
+          </button>
+        </div>
       </div>
 
       <div style={{ display: "flex", flex: 1, overflow: "hidden", background: "var(--bg-base)", position: "relative" }}>
@@ -208,16 +311,41 @@ export function NotesView({ onBack, modelId }) {
             </button>
           </div>
 
+          {/* Search Bar */}
+          <div style={{ padding: '12px 16px 4px 16px' }}>
+            <div style={{ position: 'relative' }}>
+              <Search size={14} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+              <input
+                type="text"
+                placeholder={`Search ${activeTab}...`}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '8px 10px 8px 30px',
+                  borderRadius: '6px',
+                  border: '1px solid var(--border)',
+                  background: 'var(--bg-base)',
+                  fontSize: '13px',
+                  color: 'var(--text-primary)',
+                  boxSizing: 'border-box',
+                  outline: 'none'
+                }}
+              />
+            </div>
+          </div>
+
           <div style={{ flex: 1, overflowY: "auto", padding: "16px", display: "flex", flexDirection: "column", gap: "8px" }}>
             {loading ? (
               <div style={{ padding: "20px", textAlign: "center", color: "var(--text-muted)" }}>Loading {activeTab}...</div>
-            ) : (activeTab === "notes" ? notes : summaries).length === 0 ? (
+            ) : filteredItems.length === 0 ? (
               <div style={{ padding: "40px 20px", textAlign: "center", color: "var(--text-muted)", fontSize: "14px" }}>
                 <NotebookPen size={32} style={{ opacity: 0.2, margin: "0 auto 12px", display: "block" }} />
-                No {activeTab} found.<br/><br/>Click "New {activeTab === "notes" ? "Note" : "Summary"}" to generate from a document or past chat.
+                No {activeTab} found.<br/><br/>
+                {searchQuery ? "Try a different search." : `Click "New ${activeTab === "notes" ? "Note" : "Summary"}" to generate from a document or past chat.`}
               </div>
             ) : (
-              (activeTab === "notes" ? notes : summaries).map(item => (
+              filteredItems.map((item) => (
                 <div 
                   key={item.id}
                   onClick={() => { setSelectedItem(item); setIsMobileListVisible(false); }}
