@@ -3,12 +3,19 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import ReactMarkdown from 'react-markdown'
+import { motion } from 'motion/react'
 
 export function MessageBubble({ message, isBookmarked, onToggleBookmark }) {
   const isUser = message.role === 'user'
 
   return (
-    <div id={`msg-${message.id}`} className={`message-bubble ${isUser ? 'user' : 'assistant'}`}>
+    <motion.div
+      id={`msg-${message.id}`}
+      className={`message-bubble ${isUser ? 'user' : 'assistant'}`}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25, ease: 'easeOut' }}
+    >
       {message.id && (
         <button 
           className={`bookmark-btn ${isBookmarked ? 'active' : ''}`}
@@ -28,19 +35,24 @@ export function MessageBubble({ message, isBookmarked, onToggleBookmark }) {
           <ReactMarkdown>{message.content}</ReactMarkdown>
         </div>
       )}
-    </div>
+    </motion.div>
   )
 }
 
 // ── Typing indicator shown while waiting for API ───────────────────────────
 export function TypingIndicator() {
   return (
-    <div className="message-bubble assistant typing-bubble">
+    <motion.div
+      className="message-bubble assistant typing-bubble"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.2 }}
+    >
       <div className="typing-dots">
         <span></span>
         <span></span>
         <span></span>
       </div>
-    </div>
+    </motion.div>
   )
 }

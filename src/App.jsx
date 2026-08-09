@@ -27,7 +27,7 @@ import { ChatWindow } from "./components/ChatWindow";
 import { ModeSelector } from "./components/ModeSelector";
 import { FileUpload } from "./components/FileUpload";
 import { SettingsModal } from "./components/SettingsModal";
-import { TypewriterWelcome } from "./components/TypewriterWelcome";
+import { Dashboard } from "./components/Dashboard";
 import { FlashcardsView } from "./components/FlashcardsView";
 import { PracticeQuizView } from "./components/PracticeQuizView";
 import { FillBlanksView } from "./components/FillBlanksView";
@@ -532,7 +532,16 @@ export default function App() {
               </header>
               <main className="welcome-main">
                 <div className="welcome-typewriter-wrapper">
-                  <TypewriterWelcome userName={activeName} />
+                  <Dashboard
+                    userName={activeName}
+                    institution={institution}
+                    courses={courses}
+                    onSelectView={setActiveView}
+                    onLoadSession={(id) => {
+                      loadSession(id);
+                      setActiveView("chat");
+                    }}
+                  />
                 </div>
                 <div className="welcome-input-container">
                   <div className="welcome-input-border">
