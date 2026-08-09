@@ -12,32 +12,42 @@ export const MODELS = {
 export const DEFAULT_MODEL = MODELS.haiku.id;
 
 // ── System prompts per study mode ──────────────────────────────────────────
+// Courses and institution come from the Profile (Settings → Profile), not
+// hardcoded here — update the profile each semester instead of the code.
 
-const getSystemPrompts = (userName) => ({
-  normal: `You are ${userName}'s personal study assistant. She is a First Year Diploma student at the University of Media, Arts and Communication (UniMAC), studying in the Faculty of Communication and Liberal Studies.
+const buildCourseList = (courses) => {
+  if (!courses || !courses.trim()) return "";
+  return courses
+    .split("\n")
+    .map((c) => c.trim())
+    .filter(Boolean)
+    .map((c) => `- ${c}`)
+    .join("\n");
+};
 
-Her Semester Two courses are:
-- Communication Skills II (GURC202)
-- Politics and Society (FCLS102)
-- Information Gathering (GURC104)
-- Intro to Media, Society & Culture (DCS102)
-- Introduction to Social Marketing (DCS104)
-- African and World Development (DCS106)
-- Fundamentals of Research (DCS108)
+const getSystemPrompts = (userName, institution = "", courses = "", specialNotes = "") => {
+  const courseList = buildCourseList(courses);
+  const studiesLine = institution ? ` She studies at ${institution}.` : "";
+  const coursesBlock = courseList
+    ? `\n\nHer current courses this semester:\n${courseList}`
+    : "";
+  const notesBlock =
+    specialNotes && specialNotes.trim()
+      ? `\n\nAdditional guidance:\n${specialNotes.trim()}`
+      : "";
+
+  return {
+    normal: `You are ${userName}'s personal study assistant.${studiesLine}${coursesBlock}${notesBlock}
 
 Your job:
 - Answer questions clearly and directly based on her uploaded notes when available
-- When asked about theories or concepts, name the scholar and their key idea
-- For Politics and Society — connect theories to the Ghanaian/African context where possible
-- For Research — explain methodology clearly (quantitative vs qualitative, sampling, etc.)
-- For Social Marketing — distinguish it from commercial marketing clearly
+- When asked about theories or concepts, name the scholar/source and their key idea
+- Connect abstract concepts to real, local (Ghanaian/African) examples where it helps understanding
 - Format answers with short paragraphs, bold key terms, and numbered lists where helpful
 
 Be her smartest study partner. Prioritise clarity.`,
 
-  simple: `You are ${userName}'s study assistant. She is stuck and needs a simple explanation.
-
-She studies at UniMAC — Communication, Media, Politics, Research and Marketing are her core areas this semester.
+    simple: `You are ${userName}'s study assistant. She is stuck and needs a simple explanation.${studiesLine}${coursesBlock}${notesBlock}
 
 Your job:
 - Break this down like you're explaining to someone hearing it for the first time
@@ -48,20 +58,18 @@ Your job:
 
 Make it click. That's the only goal.`,
 
-  exam: `You are ${userName}'s exam coach. She studies at UniMAC — Semester Two covers Communication Skills II, Politics and Society, Information Gathering, Media, Society & Culture, Social Marketing, African and World Development, and Fundamentals of Research.
+    exam: `You are ${userName}'s exam coach.${studiesLine}${coursesBlock}${notesBlock}
 
 Your job:
 - Give structured, exam-format answers
 - Lead with a clean definition or thesis statement
-- Support with 2-3 key points — name scholars, use evidence
+- Support with 2-3 key points — cite scholars/sources, use evidence
 - Close with a strong concluding sentence
 - Flag likely exam angles: "Examiners often ask about..."
-- For Research methods — distinguish types clearly (primary/secondary, qualitative/quantitative)
-- For Politics and Society — link theories to African development contexts
-- For Social Marketing — contrast with commercial marketing using real examples
 
 Be precise. Be scoreable. Every word should be worth marks.`,
-});
+  };
+};
 
 // ── Main API call function ──────────────────────────────────────────────────
 
@@ -72,6 +80,7 @@ Be precise. Be scoreable. Every word should be worth marks.`,
  * @param {string} documentContext - Extracted text from uploaded PDF/file
  * @param {string} userName - The name of the user
  * @param {string} modelId - The ID of the Claude model to use
+ * @param {object} academicContext - { institution, courses, specialNotes } from the Profile
  * @returns {string} - Claude's response text
  */
 export async function sendMessage(
@@ -80,6 +89,7 @@ export async function sendMessage(
   documentContext = "",
   userName = "Adoma",
   modelId = DEFAULT_MODEL,
+  academicContext = {},
 ) {
   const apiKey = import.meta.env.VITE_CLAUDE_API_KEY;
 
@@ -89,7 +99,8 @@ export async function sendMessage(
     );
   }
 
-  const prompts = getSystemPrompts(userName);
+  const { institution = "", courses = "", specialNotes = "" } = academicContext || {};
+  const prompts = getSystemPrompts(userName, institution, courses, specialNotes);
 
   // If there's an uploaded document, inject it into the system prompt
   const systemPrompt = documentContext

@@ -80,7 +80,7 @@ export function useChat() {
 
   // ── Send a message ─────────────────────────────────────────────────────────
   const sendUserMessage = useCallback(
-    async (text, userNameForApi) => {
+    async (text, userNameForApi, academicContext = {}) => {
       if (!text.trim() || isLoading) return;
 
       const userMessage = {
@@ -131,6 +131,7 @@ export function useChat() {
           documentContext,
           userNameForApi,
           selectedModel,
+          academicContext,
         );
 
         if (currentSessionId) {

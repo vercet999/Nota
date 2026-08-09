@@ -219,6 +219,40 @@ export async function deleteSummary(id) {
 }
 
 
+// ── Profile (adaptive per-semester context) ──────────────────────────────────
+// Single-row table: institution, current courses, and optional freeform
+// guidance for the AI. Update this each semester instead of touching code.
+
+export async function getProfile() {
+  const { data, error } = await supabase
+    .from("profile")
+    .select("*")
+    .eq("id", 1)
+    .single();
+
+  if (error) {
+    console.warn("Profile table unavailable, falling back to localStorage:", error);
+    const local = localStorage.getItem("nota_profile");
+    return local ? JSON.parse(local) : null;
+  }
+  return data;
+}
+
+export async function saveProfile(profile) {
+  const { data, error } = await supabase
+    .from("profile")
+    .upsert([{ id: 1, ...profile, updated_at: new Date().toISOString() }])
+    .select()
+    .single();
+
+  if (error) {
+    console.warn("Profile table error, using localStorage:", error);
+    localStorage.setItem("nota_profile", JSON.stringify(profile));
+    return profile;
+  }
+  return data;
+}
+
 /**
  * Upload the raw file to Supabase Storage bucket "nota-files".
  * Returns the public URL of the uploaded file.

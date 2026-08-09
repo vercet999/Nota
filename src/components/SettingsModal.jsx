@@ -23,24 +23,33 @@ export function SettingsModal({
   onClose,
   currentName,
   currentColor,
+  currentInstitution,
+  currentCourses,
+  currentNotes,
   onSave,
   onManageChats,
 }) {
   const [nameInput, setNameInput] = useState(currentName);
   const [colorInput, setColorInput] = useState(currentColor || "#e8a030");
+  const [institutionInput, setInstitutionInput] = useState(currentInstitution || "");
+  const [coursesInput, setCoursesInput] = useState(currentCourses || "");
+  const [notesInput, setNotesInput] = useState(currentNotes || "");
 
   useEffect(() => {
     if (isOpen) {
       setNameInput(currentName);
       setColorInput(currentColor || "#e8a030");
+      setInstitutionInput(currentInstitution || "");
+      setCoursesInput(currentCourses || "");
+      setNotesInput(currentNotes || "");
     }
-  }, [isOpen, currentName, currentColor]);
+  }, [isOpen, currentName, currentColor, currentInstitution, currentCourses, currentNotes]);
 
   if (!isOpen) return null;
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave(nameInput, colorInput);
+    onSave(nameInput, colorInput, institutionInput, coursesInput, notesInput);
   };
 
   const renderColorOptions = (title, options) => (
@@ -106,6 +115,53 @@ export function SettingsModal({
             </label>
             {renderColorOptions("Neutral Options", COLORS.neutral)}
             {renderColorOptions("Feminine Options", COLORS.feminine)}
+          </div>
+
+          <div className="form-group" style={{ borderTop: "1px solid var(--border)", paddingTop: "20px", marginTop: "4px" }}>
+            <label style={{ display: "block", fontSize: "13px", color: "var(--text-secondary)", marginBottom: "4px" }}>
+              Profile — update each semester
+            </label>
+            <p style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: 0, marginBottom: "12px" }}>
+              This is what Nota knows about your studies. Edit it here instead of touching code when courses change.
+            </p>
+
+            <div className="form-group">
+              <label htmlFor="institutionInput">Institution / Program</label>
+              <input
+                id="institutionInput"
+                type="text"
+                value={institutionInput}
+                onChange={(e) => setInstitutionInput(e.target.value)}
+                placeholder="e.g. UniMAC, Faculty of Communication and Liberal Studies"
+                className="settings-input"
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="coursesInput">Current courses (one per line)</label>
+              <textarea
+                id="coursesInput"
+                value={coursesInput}
+                onChange={(e) => setCoursesInput(e.target.value)}
+                placeholder={"Communication Skills II (GURC202)\nPolitics and Society (FCLS102)"}
+                className="settings-input"
+                rows={5}
+                style={{ resize: "vertical", fontFamily: "inherit" }}
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="notesInput">Special guidance (optional)</label>
+              <textarea
+                id="notesInput"
+                value={notesInput}
+                onChange={(e) => setNotesInput(e.target.value)}
+                placeholder="e.g. For Research, always explain qualitative vs quantitative"
+                className="settings-input"
+                rows={3}
+                style={{ resize: "vertical", fontFamily: "inherit" }}
+              />
+            </div>
           </div>
 
           <div className="form-group" style={{ borderTop: "1px solid var(--border)", paddingTop: "20px", marginTop: "4px" }}>

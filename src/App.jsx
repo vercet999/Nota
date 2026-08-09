@@ -84,6 +84,15 @@ export default function App() {
   const [accentColor, setAccentColor] = useState(
     () => localStorage.getItem("study_accentColor") || "#e8a030",
   );
+  const [institution, setInstitution] = useState(
+    () => localStorage.getItem("study_institution") || "",
+  );
+  const [courses, setCourses] = useState(
+    () => localStorage.getItem("study_courses") || "",
+  );
+  const [specialNotes, setSpecialNotes] = useState(
+    () => localStorage.getItem("study_notes") || "",
+  );
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isFilesModalOpen, setIsFilesModalOpen] = useState(false);
@@ -129,6 +138,21 @@ export default function App() {
   useEffect(() => {
     document.documentElement.style.setProperty("--accent", accentColor);
   }, [accentColor]);
+
+  // Load the saved profile (institution/courses/notes) from Supabase on mount
+  useEffect(() => {
+    import("./utils/db.js")
+      .then(({ getProfile }) => getProfile())
+      .then((profile) => {
+        if (!profile) return;
+        if (profile.user_name) setUserName(profile.user_name);
+        if (profile.accent_color) setAccentColor(profile.accent_color);
+        if (profile.institution) setInstitution(profile.institution);
+        if (profile.courses) setCourses(profile.courses);
+        if (profile.special_notes) setSpecialNotes(profile.special_notes);
+      })
+      .catch(() => {}); // localStorage values already in state as fallback
+  }, []);
 
   const {
     messages,
@@ -206,7 +230,7 @@ export default function App() {
       textareaRef.current.style.height = "auto";
     }
     textareaRef.current?.focus();
-    await sendUserMessage(text, activeName);
+    await sendUserMessage(text, activeName, { institution, courses, specialNotes });
   };
 
   const handleKeyDown = (e) => {
@@ -217,11 +241,31 @@ export default function App() {
     }
   };
 
-  const handleSaveSettings = (name, color) => {
+  const handleSaveSettings = (name, color, newInstitution, newCourses, newNotes) => {
     setUserName(name);
     setAccentColor(color);
+    setInstitution(newInstitution);
+    setCourses(newCourses);
+    setSpecialNotes(newNotes);
+
     localStorage.setItem("study_userName", name);
     localStorage.setItem("study_accentColor", color);
+    localStorage.setItem("study_institution", newInstitution);
+    localStorage.setItem("study_courses", newCourses);
+    localStorage.setItem("study_notes", newNotes);
+
+    import("./utils/db.js")
+      .then(({ saveProfile }) =>
+        saveProfile({
+          user_name: name,
+          accent_color: color,
+          institution: newInstitution,
+          courses: newCourses,
+          special_notes: newNotes,
+        }),
+      )
+      .catch((e) => console.warn("Could not save profile to Supabase", e));
+
     setIsSettingsOpen(false);
   };
 
@@ -779,6 +823,9 @@ export default function App() {
         onClose={() => setIsSettingsOpen(false)}
         currentName={userName}
         currentColor={accentColor}
+        currentInstitution={institution}
+        currentCourses={courses}
+        currentNotes={specialNotes}
         onSave={handleSaveSettings}
         onManageChats={() => setIsHistoryOpen(true)}
       />
