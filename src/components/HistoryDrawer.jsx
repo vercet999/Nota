@@ -1,11 +1,19 @@
 // ─── HistoryDrawer.jsx ────────────────────────────────────────────────────────
 // Full chat management modal. Opened from Settings.
-// Features: view chats and delete with confirmation.
+// Features: view chats, filter by course, and delete with confirmation.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useEffect, useState, useCallback } from "react";
-import { X, MessageSquare, Trash2, AlertTriangle } from "lucide-react";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { X, MessageSquare, Trash2, AlertTriangle, GraduationCap } from "lucide-react";
 import { getSessions, deleteSession } from "../utils/db";
+
+function parseCourses(coursesText) {
+  if (!coursesText || !coursesText.trim()) return [];
+  return coursesText
+    .split("\n")
+    .map((c) => c.trim())
+    .filter(Boolean);
+}
 
 // ── Single session row ────────────────────────────────────────────────────────
 function SessionItem({ session, onLoad, onDeleteRequest }) {
@@ -25,6 +33,9 @@ function SessionItem({ session, onLoad, onDeleteRequest }) {
           {session.title || "Untitled"}
         </span>
         <span className="chat-manager-item-meta">
+          {session.course && (
+            <span className="chat-manager-mode-badge course-badge">{session.course}</span>
+          )}
           {session.mode && (
             <span className="chat-manager-mode-badge">{session.mode}</span>
           )}
@@ -72,10 +83,17 @@ function DeleteConfirm({ session, onConfirm, onCancel }) {
 }
 
 // ── Main component ─────────────────────────────────────────────────────────────
-export function HistoryDrawer({ isOpen, onClose, onLoadSession }) {
+export function HistoryDrawer({ isOpen, onClose, onLoadSession, courses }) {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [courseFilter, setCourseFilter] = useState(null);
+
+  const courseList = useMemo(() => parseCourses(courses), [courses]);
+  const filteredSessions = useMemo(
+    () => (courseFilter ? sessions.filter((s) => s.course === courseFilter) : sessions),
+    [sessions, courseFilter],
+  );
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
@@ -150,6 +168,35 @@ export function HistoryDrawer({ isOpen, onClose, onLoadSession }) {
             </button>
           </div>
 
+          {courseList.length > 0 && (
+            <div
+              style={{
+                display: "flex",
+                gap: "8px",
+                padding: "12px 16px 0",
+                flexWrap: "wrap",
+              }}
+            >
+              <button
+                className={`custom-dropdown-item course-filter-pill ${!courseFilter ? "active" : ""}`}
+                onClick={() => setCourseFilter(null)}
+                style={{ border: "1px solid var(--border)", borderRadius: "999px", padding: "6px 12px" }}
+              >
+                All
+              </button>
+              {courseList.map((course) => (
+                <button
+                  key={course}
+                  className={`custom-dropdown-item course-filter-pill ${courseFilter === course ? "active" : ""}`}
+                  onClick={() => setCourseFilter(course)}
+                  style={{ border: "1px solid var(--border)", borderRadius: "999px", padding: "6px 12px", display: "flex", alignItems: "center", gap: "6px" }}
+                >
+                  <GraduationCap size={13} /> {course}
+                </button>
+              ))}
+            </div>
+          )}
+
           <div
             className="chat-manager-list"
             style={{
@@ -172,7 +219,7 @@ export function HistoryDrawer({ isOpen, onClose, onLoadSession }) {
                 Loading...
               </p>
             )}
-            {!loading && sessions.length === 0 && (
+            {!loading && filteredSessions.length === 0 && (
               <div
                 style={{
                   textAlign: "center",
@@ -188,11 +235,11 @@ export function HistoryDrawer({ isOpen, onClose, onLoadSession }) {
                     display: "block",
                   }}
                 />
-                No chats yet.
+                {courseFilter ? `No chats tagged "${courseFilter}" yet.` : "No chats yet."}
               </div>
             )}
             {!loading &&
-              sessions.map((s) => (
+              filteredSessions.map((s) => (
                 <SessionItem
                   key={s.id}
                   session={s}

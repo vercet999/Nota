@@ -80,7 +80,7 @@ export function useChat() {
 
   // ── Send a message ─────────────────────────────────────────────────────────
   const sendUserMessage = useCallback(
-    async (text, userNameForApi, academicContext = {}) => {
+    async (text, userNameForApi, academicContext = {}, courseTag = null) => {
       if (!text.trim() || isLoading) return;
 
       const userMessage = {
@@ -100,7 +100,7 @@ export function useChat() {
       try {
         // Create session on first message
         if (!currentSessionId) {
-          const session = await createSession(mode, selectedModel).catch(
+          const session = await createSession(mode, selectedModel, courseTag).catch(
             (e) => {
               console.warn("Could not create DB session", e);
               return null;

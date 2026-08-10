@@ -1,9 +1,9 @@
 import { supabase } from "./supabase";
 
-export async function createSession(mode, model) {
+export async function createSession(mode, model, course = null) {
   const { data, error } = await supabase
     .from("sessions")
-    .insert([{ mode, model, title: "New Conversation" }])
+    .insert([{ mode, model, course, title: "New Conversation" }])
     .select()
     .single();
 

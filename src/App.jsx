@@ -29,6 +29,7 @@ import { FileUpload } from "./components/FileUpload";
 import { SettingsModal } from "./components/SettingsModal";
 import { Dashboard } from "./components/Dashboard";
 import { MicButton } from "./components/MicButton";
+import { CourseSelector } from "./components/CourseSelector";
 import { FlashcardsView } from "./components/FlashcardsView";
 import { PracticeQuizView } from "./components/PracticeQuizView";
 import { FillBlanksView } from "./components/FillBlanksView";
@@ -94,6 +95,7 @@ export default function App() {
   const [specialNotes, setSpecialNotes] = useState(
     () => localStorage.getItem("study_notes") || "",
   );
+  const [selectedCourse, setSelectedCourse] = useState(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isFilesModalOpen, setIsFilesModalOpen] = useState(false);
@@ -139,6 +141,19 @@ export default function App() {
   useEffect(() => {
     document.documentElement.style.setProperty("--accent", accentColor);
   }, [accentColor]);
+
+  // ── Offline indicator ────────────────────────────────────────────────────
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  useEffect(() => {
+    const goOnline = () => setIsOffline(false);
+    const goOffline = () => setIsOffline(true);
+    window.addEventListener("online", goOnline);
+    window.addEventListener("offline", goOffline);
+    return () => {
+      window.removeEventListener("online", goOnline);
+      window.removeEventListener("offline", goOffline);
+    };
+  }, []);
 
   // Load the saved profile (institution/courses/notes) from Supabase on mount
   useEffect(() => {
@@ -244,7 +259,7 @@ export default function App() {
       textareaRef.current.style.height = "auto";
     }
     textareaRef.current?.focus();
-    await sendUserMessage(text, activeName, { institution, courses, specialNotes });
+    await sendUserMessage(text, activeName, { institution, courses, specialNotes }, selectedCourse);
   };
 
   const handleKeyDown = (e) => {
@@ -372,6 +387,11 @@ export default function App() {
 
   return (
     <div className="app-layout">
+      {isOffline && (
+        <div className="offline-banner">
+          You're offline — showing saved notes, flashcards, and chats.
+        </div>
+      )}
       {/* ── Expandable Left Sidebar ── */}
       <aside className={`left-sidebar ${isSidebarOpen ? "expanded" : ""}`} ref={sidebarRef}>
         <div className="sidebar-content-wrapper">
@@ -394,6 +414,7 @@ export default function App() {
               onClick={() => {
                 clearSession();
                 setActiveView("chat");
+                setSelectedCourse(null);
               }}
             >
               <span className="sidebar-item-icon">
@@ -595,6 +616,11 @@ export default function App() {
                             activeMode={mode}
                             onModeChange={setMode}
                           />
+                          <CourseSelector
+                            courses={courses}
+                            selectedCourse={selectedCourse}
+                            onChange={setSelectedCourse}
+                          />
                           <FileUpload
                             onFileUpload={(file) => {
                               handleFileUpload(file);
@@ -765,6 +791,11 @@ export default function App() {
                           activeMode={mode}
                           onModeChange={setMode}
                         />
+                        <CourseSelector
+                          courses={courses}
+                          selectedCourse={selectedCourse}
+                          onChange={setSelectedCourse}
+                        />
                         <FileUpload
                           onFileUpload={(file) => {
                             handleFileUpload(file);
@@ -868,6 +899,7 @@ export default function App() {
         isOpen={isHistoryOpen}
         onClose={() => setIsHistoryOpen(false)}
         onLoadSession={(id) => { loadSession(id); setActiveView("chat"); }}
+        courses={courses}
       />
 
       <SearchModal
