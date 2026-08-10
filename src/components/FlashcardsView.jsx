@@ -131,7 +131,11 @@ export function FlashcardsView({ onBack, uploadedFiles, messages, modelId, onLoa
     try {
       const due = await getDueFlashcards();
       if (due.length === 0) {
-        setError("No cards are due for review right now.");
+        // Nothing due isn't an error — surface it as its own calm state,
+        // not a red banner.
+        setDueCount(0);
+        setReviewDone(true);
+        setSelectionMade(true);
         setIsLoading(false);
         return;
       }
