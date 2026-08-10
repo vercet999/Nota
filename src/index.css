@@ -343,6 +343,7 @@ body {
   flex-direction: column;
   gap: 16px;
   scroll-behavior: smooth;
+  max-width: 75%px;
 }
 
 /* Custom scrollbar */
@@ -1379,6 +1380,13 @@ body {
 .plus-btn.active {
   transform: rotate(45deg);
   color: var(--accent);
+}
+
+@media (max-width: 922px) {
+  .chat-window {
+    max-width: 100%;
+    padding: 16px;
+  }
 }
 
 @media (max-width: 600px) {
