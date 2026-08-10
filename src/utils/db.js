@@ -253,6 +253,73 @@ export async function saveProfile(profile) {
   return data;
 }
 
+// ── Flashcard deck (persistent, spaced-repetition) ───────────────────────────
+// Newly generated cards are saved here so they enter a real review rotation,
+// instead of only existing for the browsing session they were created in.
+
+export async function saveFlashcardsToDeck(cards, sourceLabel = "") {
+  const rows = cards.map((c) => ({
+    term: c.term,
+    definition: c.definition,
+    source_label: sourceLabel,
+  }));
+
+  const { data, error } = await supabase.from("flashcards").insert(rows).select();
+
+  if (error) {
+    console.warn("Could not save flashcards to deck:", error);
+    return [];
+  }
+  return data;
+}
+
+export async function getDueFlashcards() {
+  const today = new Date().toISOString().slice(0, 10);
+  const { data, error } = await supabase
+    .from("flashcards")
+    .select("*")
+    .lte("next_review_date", today)
+    .order("next_review_date", { ascending: true });
+
+  if (error) {
+    console.warn("Could not load due flashcards:", error);
+    return [];
+  }
+  return data || [];
+}
+
+export async function getDueFlashcardsCount() {
+  const today = new Date().toISOString().slice(0, 10);
+  const { count, error } = await supabase
+    .from("flashcards")
+    .select("id", { count: "exact", head: true })
+    .lte("next_review_date", today);
+
+  if (error) {
+    console.warn("Could not count due flashcards:", error);
+    return 0;
+  }
+  return count || 0;
+}
+
+export async function reviewFlashcard(cardId, rating, currentCard) {
+  const { scheduleNextReview } = await import("./spacedRepetition.js");
+  const updates = scheduleNextReview(currentCard, rating);
+
+  const { data, error } = await supabase
+    .from("flashcards")
+    .update({ ...updates, last_reviewed_at: new Date().toISOString() })
+    .eq("id", cardId)
+    .select()
+    .single();
+
+  if (error) {
+    console.warn("Could not save review:", error);
+    return null;
+  }
+  return data;
+}
+
 /**
  * Upload the raw file to Supabase Storage bucket "nota-files".
  * Returns the public URL of the uploaded file.

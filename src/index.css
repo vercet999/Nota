@@ -745,7 +745,7 @@ body {
   color: var(--text-primary);
   font-family: var(--font-body);
   font-size: 15px;
-  padding: 12px 50px;
+  padding: 12px 90px 12px 50px;
   resize: none;
   outline: none;
   line-height: 1.5;
@@ -785,6 +785,49 @@ body {
   opacity: 0.35;
   cursor: not-allowed;
   transform: none;
+}
+
+/* ── Mic button (voice input) ── */
+.mic-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.mic-btn:hover:not(:disabled) {
+  color: var(--accent);
+  background: var(--accent-glow);
+}
+
+.mic-btn.listening {
+  color: #e05050;
+  animation: micPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes micPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(224, 80, 80, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(224, 80, 80, 0);
+  }
+}
+
+.chat-mic-btn {
+  position: absolute;
+  right: 44px;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 /* ── Settings Modal ── */
@@ -1046,6 +1089,23 @@ body {
   border-color: var(--border-accent);
   color: var(--accent);
   transform: translateY(-2px);
+}
+
+.dashboard-badge {
+  position: absolute;
+  top: -8px;
+  right: -10px;
+  background: #e05050;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
 }
 
 .dashboard-recents {

@@ -4,57 +4,7 @@ import { getNotes, deleteNote, saveNote, getSummaries, deleteSummary, saveSummar
 import { generateNotes, generateSummary } from "../utils/claudeApi";
 import ReactMarkdown from "react-markdown";
 import JSZip from "jszip";
-import { Document, Packer, Paragraph, TextRun, HeadingLevel } from "docx";
-
-const convertMarkdownToDocxBlob = async (markdownText) => {
-  const lines = markdownText.split("\n");
-  const children = [];
-
-  for (const line of lines) {
-    if (line.trim() === "") {
-       children.push(new Paragraph({ text: "" }));
-       continue;
-    }
-    
-    let isHeading = false;
-    let headingLevel = null;
-    let textToParse = line;
-    let bullet = false;
-
-    if (line.startsWith("### ")) {
-       isHeading = true; headingLevel = HeadingLevel.HEADING_3; textToParse = line.slice(4);
-    } else if (line.startsWith("## ")) {
-       isHeading = true; headingLevel = HeadingLevel.HEADING_2; textToParse = line.slice(3);
-    } else if (line.startsWith("# ")) {
-       isHeading = true; headingLevel = HeadingLevel.HEADING_1; textToParse = line.slice(2);
-    } else if (line.trim().startsWith("- ")) {
-       bullet = { level: 0 };
-       textToParse = line.trim().slice(2);
-    }
-
-    const textRuns = [];
-    const parts = textToParse.split(/(\*\*.*?\*\*)/g);
-    for (const part of parts) {
-      if (part.startsWith("**") && part.endsWith("**")) {
-        textRuns.push(new TextRun({ text: part.slice(2, -2), bold: true }));
-      } else {
-        textRuns.push(new TextRun({ text: part }));
-      }
-    }
-
-    const pOptions = { children: textRuns };
-    if (isHeading) pOptions.heading = headingLevel;
-    if (bullet) pOptions.bullet = bullet;
-    
-    children.push(new Paragraph(pOptions));
-  }
-
-  const doc = new Document({
-    sections: [{ children }],
-  });
-
-  return await Packer.toBlob(doc);
-};
+import { convertMarkdownToDocxBlob } from "../utils/docxExport";
 
 export function NotesView({ onBack, modelId }) {
   const [activeTab, setActiveTab] = useState("notes"); // 'notes' | 'summaries'

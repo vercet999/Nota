@@ -10,8 +10,10 @@ import {
   Settings2,
   Target,
   ChevronDown,
+  Download,
 } from "lucide-react";
 import { generatePracticeQuiz } from "../utils/claudeApi";
+import { convertMarkdownToDocxBlob, quizToMarkdown, downloadBlob } from "../utils/docxExport";
 
 function ConfigDropdown({ label, icon, value, options, onChange }) {
   const [open, setOpen] = useState(false);
@@ -76,6 +78,20 @@ export function PracticeQuizView({ uploadedFiles, messages, modelId }) {
   const [showSessionPicker, setShowSessionPicker] = useState(false);
   const [recentSessions, setRecentSessions] = useState([]);
   const [loadingSessions, setLoadingSessions] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExportQuiz = async () => {
+    setIsExporting(true);
+    try {
+      const markdown = quizToMarkdown(quiz, topicFocus || "Practice Quiz");
+      const blob = await convertMarkdownToDocxBlob(markdown);
+      downloadBlob(blob, "practice-quiz.docx");
+    } catch {
+      setError("Could not export the quiz. Try again.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const handleGenerate = async () => {
     setIsLoading(true);
@@ -237,7 +253,12 @@ export function PracticeQuizView({ uploadedFiles, messages, modelId }) {
           <div style={{ textAlign: "center", padding: "40px 20px", background: "var(--bg-surface)", borderRadius: "16px", border: "1px solid var(--border)" }}>
             <h2 style={{ fontSize: "28px", color: "var(--text-primary)", marginBottom: "16px" }}>Quiz Complete!</h2>
             <p style={{ fontSize: "18px", color: "var(--text-secondary)", marginBottom: "32px" }}>You scored {score} out of {quiz.length}</p>
-            <button className="btn-primary" onClick={() => setSelectionMade(false)} style={{ padding: "12px 24px" }}>Start New Quiz</button>
+            <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
+              <button className="btn-primary" onClick={() => setSelectionMade(false)} style={{ padding: "12px 24px" }}>Start New Quiz</button>
+              <button className="btn-secondary" onClick={handleExportQuiz} disabled={isExporting} style={{ padding: "12px 24px", display: "flex", alignItems: "center", gap: "8px" }}>
+                <Download size={18} /> {isExporting ? "Exporting..." : "Export Quiz"}
+              </button>
+            </div>
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>

@@ -28,6 +28,7 @@ import { ModeSelector } from "./components/ModeSelector";
 import { FileUpload } from "./components/FileUpload";
 import { SettingsModal } from "./components/SettingsModal";
 import { Dashboard } from "./components/Dashboard";
+import { MicButton } from "./components/MicButton";
 import { FlashcardsView } from "./components/FlashcardsView";
 import { PracticeQuizView } from "./components/PracticeQuizView";
 import { FillBlanksView } from "./components/FillBlanksView";
@@ -192,6 +193,19 @@ export default function App() {
     setInputText(e.target.value);
     autoGrow(e.target);
   };
+
+  const handleVoiceResult = useCallback(
+    (transcript) => {
+      if (!transcript || !transcript.trim()) return;
+      setInputText((prev) => {
+        const next = prev ? `${prev} ${transcript}`.trim() : transcript.trim();
+        return next;
+      });
+      // Height adjusts on next tick once the textarea has the new value
+      requestAnimationFrame(() => autoGrow(textareaRef.current));
+    },
+    [autoGrow],
+  );
 
   // Reset height when input is cleared after send
   useEffect(() => {
@@ -620,6 +634,7 @@ export default function App() {
                     />
                     <div className="welcome-model-indicator hidden-on-mobile">
                       {renderModelSwitcher(modelDropdownRef)}
+                      <MicButton onTranscript={handleVoiceResult} disabled={isLoading} />
                       <button
                         className="icon-btn send-icon-btn"
                         onClick={handleSubmit}
@@ -629,6 +644,11 @@ export default function App() {
                       </button>
                     </div>
                     {/* Mobile-only send button */}
+                    <MicButton
+                      onTranscript={handleVoiceResult}
+                      disabled={isLoading}
+                      className="icon-btn mobile-send-btn"
+                    />
                     <button
                       className="icon-btn send-icon-btn mobile-send-btn"
                       onClick={handleSubmit}
@@ -782,6 +802,12 @@ export default function App() {
                     onKeyDown={handleKeyDown}
                     disabled={isLoading}
                     rows={1}
+                  />
+
+                  <MicButton
+                    onTranscript={handleVoiceResult}
+                    disabled={isLoading}
+                    className="icon-btn chat-mic-btn"
                   />
 
                   <button

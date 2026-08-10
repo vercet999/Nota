@@ -6,6 +6,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { NotebookPen, Library, BrainCircuit, FileText, ArrowRight } from "lucide-react";
+import { getDueFlashcardsCount } from "../utils/db";
 
 const QUICK_ACTIONS = [
   { id: "notes", label: "Generate Notes", icon: NotebookPen },
@@ -41,7 +42,12 @@ const item = {
 export function Dashboard({ userName, institution, courses, onSelectView, onLoadSession }) {
   const [recentSessions, setRecentSessions] = useState([]);
   const [loadingSessions, setLoadingSessions] = useState(true);
+  const [dueCount, setDueCount] = useState(0);
   const courseList = parseCourses(courses);
+
+  useEffect(() => {
+    getDueFlashcardsCount().then(setDueCount).catch(() => {});
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -90,7 +96,12 @@ export function Dashboard({ userName, institution, courses, onSelectView, onLoad
             className="dashboard-action-card"
             onClick={() => onSelectView(id)}
           >
-            <Icon size={20} strokeWidth={1.5} />
+            <div style={{ position: "relative" }}>
+              <Icon size={20} strokeWidth={1.5} />
+              {id === "flashcards" && dueCount > 0 && (
+                <span className="dashboard-badge">{dueCount}</span>
+              )}
+            </div>
             <span>{label}</span>
           </button>
         ))}

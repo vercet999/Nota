@@ -13,6 +13,13 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { generateFlashcards } from "../utils/claudeApi";
+import {
+  saveFlashcardsToDeck,
+  getDueFlashcards,
+  getDueFlashcardsCount,
+  reviewFlashcard,
+} from "../utils/db";
+import { convertMarkdownToDocxBlob, flashcardsToMarkdown, downloadBlob } from "../utils/docxExport";
 
 // ── Reusable custom dropdown matching the model switcher style ──────────────
 function ConfigDropdown({ label, icon, value, options, onChange }) {
@@ -74,6 +81,16 @@ export function FlashcardsView({ onBack, uploadedFiles, messages, modelId, onLoa
   const [topicFocus, setTopicFocus] = useState("");
   const [direction, setDirection] = useState(0);
 
+  // ── Spaced repetition review mode ──────────────────────────────────────
+  const [reviewMode, setReviewMode] = useState(false);
+  const [dueCount, setDueCount] = useState(0);
+  const [reviewDone, setReviewDone] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+
+  useEffect(() => {
+    getDueFlashcardsCount().then(setDueCount).catch(() => {});
+  }, []);
+
   // For session picker
   const [showSessionPicker, setShowSessionPicker] = useState(false);
   const [recentSessions, setRecentSessions] = useState([]);
@@ -82,6 +99,7 @@ export function FlashcardsView({ onBack, uploadedFiles, messages, modelId, onLoa
   const handleGenerate = async () => {
     setIsLoading(true);
     setError("");
+    setReviewMode(false);
     try {
       const cards = await generateFlashcards(
         sourceData,
@@ -93,10 +111,72 @@ export function FlashcardsView({ onBack, uploadedFiles, messages, modelId, onLoa
       setFlashcards(cards);
       setCurrentIndex(0);
       setIsFlipped(false);
+      // Persist into the review deck so these cards enter spaced repetition
+      // instead of only existing for this browsing session.
+      saveFlashcardsToDeck(cards, topicFocus || "Generated deck")
+        .then(() => getDueFlashcardsCount())
+        .then(setDueCount)
+        .catch(() => {});
     } catch (err) {
       setError(err.message || "Failed to generate flashcards.");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const startReview = async () => {
+    setIsLoading(true);
+    setError("");
+    setReviewDone(false);
+    try {
+      const due = await getDueFlashcards();
+      if (due.length === 0) {
+        setError("No cards are due for review right now.");
+        setIsLoading(false);
+        return;
+      }
+      setFlashcards(due);
+      setCurrentIndex(0);
+      setIsFlipped(false);
+      setReviewMode(true);
+      setSelectionMade(true);
+    } catch {
+      setError("Could not load your review deck. Try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRate = async (rating) => {
+    const current = flashcards[currentIndex];
+    try {
+      await reviewFlashcard(current.id, rating, current);
+    } catch {
+      // Non-fatal — still advance so a network hiccup doesn't block review
+    }
+
+    const remaining = flashcards.filter((_, i) => i !== currentIndex);
+    if (remaining.length === 0) {
+      setReviewDone(true);
+      setFlashcards([]);
+      getDueFlashcardsCount().then(setDueCount).catch(() => {});
+      return;
+    }
+    setFlashcards(remaining);
+    setIsFlipped(false);
+    setCurrentIndex((i) => (i >= remaining.length ? 0 : i));
+  };
+
+  const handleExportDeck = async () => {
+    setIsExporting(true);
+    try {
+      const markdown = flashcardsToMarkdown(flashcards, topicFocus || "Flashcards");
+      const blob = await convertMarkdownToDocxBlob(markdown);
+      downloadBlob(blob, "flashcards.docx");
+    } catch {
+      setError("Could not export the deck. Try again.");
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -180,6 +260,8 @@ export function FlashcardsView({ onBack, uploadedFiles, messages, modelId, onLoa
     setFlashcards([]);
     setSourceData("");
     setError("");
+    setReviewMode(false);
+    setReviewDone(false);
   };
 
   return (
@@ -239,6 +321,31 @@ export function FlashcardsView({ onBack, uploadedFiles, messages, modelId, onLoa
             marginTop: "40px",
           }}
         >
+          {dueCount > 0 && (
+            <button
+              onClick={startReview}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "10px",
+                width: "100%",
+                padding: "16px",
+                marginBottom: "28px",
+                background: "var(--accent-glow)",
+                border: "1px solid var(--border-accent)",
+                borderRadius: "12px",
+                color: "var(--accent)",
+                fontWeight: 500,
+                fontSize: "15px",
+                cursor: "pointer",
+              }}
+            >
+              <Target size={18} />
+              {dueCount} card{dueCount === 1 ? "" : "s"} due for review — Review now
+            </button>
+          )}
+
           <h3
             style={{
               fontSize: "20px",
@@ -465,6 +572,19 @@ export function FlashcardsView({ onBack, uploadedFiles, messages, modelId, onLoa
             Generating flashcards from your notes...
           </p>
         </div>
+      ) : reviewDone ? (
+        <div style={{ textAlign: "center", padding: "80px 20px", maxWidth: "500px", margin: "0 auto" }}>
+          <Target size={40} style={{ color: "var(--accent)", marginBottom: "20px" }} />
+          <h3 style={{ fontSize: "22px", color: "var(--text-primary)", marginBottom: "10px" }}>
+            All caught up!
+          </h3>
+          <p style={{ color: "var(--text-muted)", marginBottom: "28px" }}>
+            No more cards due for review right now. Come back tomorrow, or generate a new deck.
+          </p>
+          <button className="btn-primary" onClick={resetSelection} style={{ padding: "12px 24px" }}>
+            Back to Flashcards
+          </button>
+        </div>
       ) : flashcards.length > 0 ? (
         <div
           className="flashcards-container"
@@ -636,125 +756,168 @@ export function FlashcardsView({ onBack, uploadedFiles, messages, modelId, onLoa
             </AnimatePresence>
           </div>
 
-          <div
-            className="flashcard-controls"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              width: "100%",
-              padding: "0 20px",
-            }}
-          >
-            <button
-              onClick={prevCard}
-              className="icon-btn hover:bg-[var(--bg-raised)]"
-              style={{
-                background: "var(--bg-surface)",
-                border: "1px solid var(--border)",
-                padding: "12px",
-                borderRadius: "50%",
-              }}
-              title="Previous Card"
-            >
-              <ChevronLeft size={24} />
-            </button>
-
-            <div style={{ textAlign: "center", flex: 1, padding: "0 20px" }}>
-              <div
-                style={{
-                  fontSize: "16px",
-                  fontWeight: 500,
-                  color: "var(--text-primary)",
-                  marginBottom: "8px",
-                }}
-              >
-                Reviewed {currentIndex + 1} of {flashcards.length}
+          {reviewMode ? (
+            <div style={{ width: "100%", padding: "0 20px" }}>
+              <div style={{ textAlign: "center", color: "var(--text-muted)", fontSize: "13px", marginBottom: "16px" }}>
+                {flashcards.length} card{flashcards.length === 1 ? "" : "s"} left in this session
               </div>
-
-              <div
-                style={{
-                  width: "100%",
-                  height: "6px",
-                  background: "var(--border)",
-                  borderRadius: "10px",
-                  overflow: "hidden",
-                  marginBottom: "8px",
-                }}
-              >
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{
-                    width: `${((currentIndex + 1) / flashcards.length) * 100}%`,
-                  }}
-                  transition={{ duration: 0.3 }}
-                  style={{
-                    height: "100%",
-                    background: "var(--accent)",
-                    borderRadius: "10px",
-                  }}
-                />
-              </div>
-
-              <div style={{ fontSize: "13px", color: "var(--text-muted)" }}>
-                {flashcards.length - (currentIndex + 1)} remaining
-              </div>
+              {isFlipped ? (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px" }}>
+                  <button onClick={() => handleRate("again")} className="btn-secondary" style={{ padding: "12px 8px", color: "#e05050", borderColor: "rgba(224,80,80,0.35)" }}>
+                    Again
+                  </button>
+                  <button onClick={() => handleRate("hard")} className="btn-secondary" style={{ padding: "12px 8px" }}>
+                    Hard
+                  </button>
+                  <button onClick={() => handleRate("good")} className="btn-secondary" style={{ padding: "12px 8px" }}>
+                    Good
+                  </button>
+                  <button onClick={() => handleRate("easy")} className="btn-primary" style={{ padding: "12px 8px" }}>
+                    Easy
+                  </button>
+                </div>
+              ) : (
+                <div style={{ textAlign: "center", color: "var(--text-muted)", fontSize: "13px" }}>
+                  Flip the card to rate how well you knew it
+                </div>
+              )}
             </div>
+          ) : (
+            <>
+              <div
+                className="flashcard-controls"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  width: "100%",
+                  padding: "0 20px",
+                }}
+              >
+                <button
+                  onClick={prevCard}
+                  className="icon-btn hover:bg-[var(--bg-raised)]"
+                  style={{
+                    background: "var(--bg-surface)",
+                    border: "1px solid var(--border)",
+                    padding: "12px",
+                    borderRadius: "50%",
+                  }}
+                  title="Previous Card"
+                >
+                  <ChevronLeft size={24} />
+                </button>
 
-            <button
-              onClick={nextCard}
-              className="icon-btn hover:bg-[var(--bg-raised)]"
-              style={{
-                background: "var(--bg-surface)",
-                border: "1px solid var(--border)",
-                padding: "12px",
-                borderRadius: "50%",
-              }}
-              title="Next Card"
-            >
-              <ChevronRight size={24} />
-            </button>
-          </div>
+                <div style={{ textAlign: "center", flex: 1, padding: "0 20px" }}>
+                  <div
+                    style={{
+                      fontSize: "16px",
+                      fontWeight: 500,
+                      color: "var(--text-primary)",
+                      marginBottom: "8px",
+                    }}
+                  >
+                    Reviewed {currentIndex + 1} of {flashcards.length}
+                  </div>
 
-          <div style={{ display: "flex", gap: "16px", marginTop: "16px" }}>
-            <button
-              className="btn-secondary"
-              onClick={shuffleFlashcards}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                padding: "10px 20px",
-              }}
-            >
-              <RefreshCw size={18} /> Shuffle
-            </button>
-            <button
-              className="btn-primary"
-              onClick={handleGenerate}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                padding: "10px 20px",
-              }}
-            >
-              <RefreshCw size={18} /> Regenerate
-            </button>
-            <button
-              className="btn-secondary"
-              onClick={resetSelection}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                padding: "10px 20px",
-                opacity: 0.8,
-              }}
-            >
-              Choose different content
-            </button>
-          </div>
+                  <div
+                    style={{
+                      width: "100%",
+                      height: "6px",
+                      background: "var(--border)",
+                      borderRadius: "10px",
+                      overflow: "hidden",
+                      marginBottom: "8px",
+                    }}
+                  >
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{
+                        width: `${((currentIndex + 1) / flashcards.length) * 100}%`,
+                      }}
+                      transition={{ duration: 0.3 }}
+                      style={{
+                        height: "100%",
+                        background: "var(--accent)",
+                        borderRadius: "10px",
+                      }}
+                    />
+                  </div>
+
+                  <div style={{ fontSize: "13px", color: "var(--text-muted)" }}>
+                    {flashcards.length - (currentIndex + 1)} remaining
+                  </div>
+                </div>
+
+                <button
+                  onClick={nextCard}
+                  className="icon-btn hover:bg-[var(--bg-raised)]"
+                  style={{
+                    background: "var(--bg-surface)",
+                    border: "1px solid var(--border)",
+                    padding: "12px",
+                    borderRadius: "50%",
+                  }}
+                  title="Next Card"
+                >
+                  <ChevronRight size={24} />
+                </button>
+              </div>
+
+              <div style={{ display: "flex", gap: "16px", marginTop: "16px", flexWrap: "wrap", justifyContent: "center" }}>
+                <button
+                  className="btn-secondary"
+                  onClick={shuffleFlashcards}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    padding: "10px 20px",
+                  }}
+                >
+                  <RefreshCw size={18} /> Shuffle
+                </button>
+                <button
+                  className="btn-primary"
+                  onClick={handleGenerate}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    padding: "10px 20px",
+                  }}
+                >
+                  <RefreshCw size={18} /> Regenerate
+                </button>
+                <button
+                  className="btn-secondary"
+                  onClick={handleExportDeck}
+                  disabled={isExporting}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    padding: "10px 20px",
+                  }}
+                >
+                  <Download size={18} /> {isExporting ? "Exporting..." : "Export Deck"}
+                </button>
+                <button
+                  className="btn-secondary"
+                  onClick={resetSelection}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    padding: "10px 20px",
+                    opacity: 0.8,
+                  }}
+                >
+                  Choose different content
+                </button>
+              </div>
+            </>
+          )}
         </div>
       ) : null}
     </div>
