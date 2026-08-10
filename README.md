@@ -1,43 +1,110 @@
-# Adoma — Study AI 📚
+# Nota — Study AI 📚
 
-A personal AI study assistant built for Adoma, Communication & Journalism student at UniMAC.
+Nota is a personal study assistant for turning notes, lectures, and uploaded documents into focused learning support. It helps students chat with their course material, extract key ideas, generate quizzes, and revise with AI-backed study workflows.
 
-## Features (Starter)
-- 💬 Chat with context from uploaded notes
-- 📄 Upload PDFs or .txt notes — AI reads them with you
-- 🎯 4 Study Modes: Normal, Simplify, Exam Mode, Journalism Coach
-- ⚡ Quick prompts: Summarise, Practice Questions, Key Definitions, Daily Guide rewrite
+## Features
+
+- 💬 AI chat with course and document context
+- 📄 Upload PDFs, DOCX, and text files for study assistance
+- 🧠 Multiple study modes: Normal, Simplify, Exam Mode, and Journalism Coach
+- 📝 Generate flashcards, practice quizzes, and fill-in-the-blank drills
+- 🔎 Search and review saved notes, summaries, and session history
+- 🎯 Course-aware learning with profile and study context controls
+- 💾 Local storage and Supabase-backed session persistence
+- 📱 PWA-friendly frontend for a smoother desktop/mobile experience
+
+## Tech stack
+
+- React + Vite
+- Express server for Claude API proxying
+- Anthropic Claude API
+- Supabase for profile/session persistence
+- PDF/DOCX text extraction utilities
+
+## Project structure
+
+```text
+.
+├── src/
+│   ├── components/
+│   ├── hooks/
+│   ├── utils/
+│   ├── App.jsx
+│   └── main.jsx
+├── public/
+├── .env.example
+├── server.js
+├── vite.config.js
+├── package.json
+├── README.md
+└── index.html
+```
 
 ## Setup
 
 ### 1. Install dependencies
+
 ```bash
 npm install
 ```
 
-### 2. Set up your API key
+### 2. Configure environment variables
+
 ```bash
 cp .env.example .env
 ```
-Then open `.env` and replace `your_claude_api_key_here` with your actual Claude API key.
-Get one from: https://console.anthropic.com/
+
+Then add your credentials in `.env`:
+
+```env
+VITE_CLAUDE_API_KEY=your_claude_api_key_here
+VITE_SUPABASE_URL=your_supabase_url_here
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+```
+
+- Get your Claude API key from: https://console.anthropic.com/
+- Configure Supabase if you want saved sessions, notes, and profile data
 
 ### 3. Run locally
+
 ```bash
 npm run dev
 ```
-Open http://localhost:5173
+
+The app will run on:
+
+```text
+http://localhost:3000
+```
 
 ### 4. Build for production
+
 ```bash
 npm run build
 ```
 
-## Deploy to Vercel
-1. Push to GitHub
-2. Connect repo on vercel.com
-3. Add `VITE_CLAUDE_API_KEY` in Vercel → Settings → Environment Variables
-4. Deploy
+To preview the production build:
 
-## Next steps
-See `PROMPTS.md` for AI Studio prompts to add: Practice Quiz, Flashcards, Summary Tool, Pomodoro timer.
+```bash
+npm run preview
+```
+
+## Deployment
+
+This project is designed to run on a Node environment with environment variables configured. For deployment platforms such as Vercel or Render, set the same variables in the host environment and ensure the server can start successfully.
+
+Typical required variables:
+
+- `VITE_CLAUDE_API_KEY`
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+
+## Notes
+
+- The app proxies Claude calls through the local Express server in `server.js`.
+- Some features fall back to browser localStorage if Supabase is unavailable.
+- For best results, upload clean notes and PDFs before starting a deep study session.
+
+## License
+
+This project is currently unlicensed unless otherwise specified by the repository owner.

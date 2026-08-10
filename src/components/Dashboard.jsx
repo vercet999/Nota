@@ -5,15 +5,8 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
-import { NotebookPen, Library, BrainCircuit, FileText, ArrowRight } from "lucide-react";
+import { ArrowRight, Zap } from "lucide-react";
 import { getDueFlashcardsCount } from "../utils/db";
-
-const QUICK_ACTIONS = [
-  { id: "notes", label: "Generate Notes", icon: NotebookPen },
-  { id: "flashcards", label: "Flashcards", icon: Library },
-  { id: "quiz", label: "Practice Quiz", icon: BrainCircuit },
-  { id: "fill-blanks", label: "Fill in Blanks", icon: FileText },
-];
 
 function getGreeting() {
   const hour = new Date().getHours();
@@ -89,23 +82,21 @@ export function Dashboard({ userName, institution, courses, onSelectView, onLoad
         </motion.div>
       )}
 
-      <motion.div variants={item} className="dashboard-actions">
-        {QUICK_ACTIONS.map(({ id, label, icon: Icon }) => (
-          <button
-            key={id}
-            className="dashboard-action-card"
-            onClick={() => onSelectView(id)}
-          >
-            <div style={{ position: "relative" }}>
-              <Icon size={20} strokeWidth={1.5} />
-              {id === "flashcards" && dueCount > 0 && (
-                <span className="dashboard-badge">{dueCount}</span>
-              )}
-            </div>
-            <span>{label}</span>
-          </button>
-        ))}
-      </motion.div>
+      {dueCount > 0 && (
+        <motion.button
+          variants={item}
+          className="dashboard-due-banner"
+          onClick={() => onSelectView("flashcards")}
+        >
+          <span className="dashboard-due-banner-icon">
+            <Zap size={16} strokeWidth={2} />
+          </span>
+          <span className="dashboard-due-banner-text">
+            {dueCount} card{dueCount === 1 ? "" : "s"} due for review
+          </span>
+          <ArrowRight size={16} strokeWidth={1.5} />
+        </motion.button>
+      )}
 
       {!loadingSessions && recentSessions.length > 0 && (
         <motion.div variants={item} className="dashboard-recents">

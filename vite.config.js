@@ -55,15 +55,27 @@ export default defineConfig({
         name: 'Nota — Study AI',
         short_name: 'Nota',
         description: 'Your AI study companion.',
-        theme_color: '#131211',
-        background_color: '#131211',
+        theme_color: '#000000',
+        background_color: '#000000',
         display: 'standalone',
         icons: [
           {
-            src: '/favicon.svg',
-            sizes: '192x192 512x512',
-            type: 'image/svg+xml',
-            purpose: 'any maskable'
+            src: '/icon-192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'any'
+          },
+          {
+            src: '/icon-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any'
+          },
+          {
+            src: '/icon-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable'
           }
         ]
       }

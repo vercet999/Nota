@@ -30,6 +30,7 @@ import { SettingsModal } from "./components/SettingsModal";
 import { Dashboard } from "./components/Dashboard";
 import { MicButton } from "./components/MicButton";
 import { CourseSelector } from "./components/CourseSelector";
+import { BottomTabBar } from "./components/BottomTabBar";
 import { FlashcardsView } from "./components/FlashcardsView";
 import { PracticeQuizView } from "./components/PracticeQuizView";
 import { FillBlanksView } from "./components/FillBlanksView";
@@ -518,6 +519,21 @@ export default function App() {
           </div>
         </div>
       </aside>
+
+      {/* Dimmed backdrop behind the mobile slide-over sidebar (iPhone-width only) */}
+      {isSidebarOpen && (
+        <div className="sidebar-backdrop" onClick={() => setIsSidebarOpen(false)} />
+      )}
+
+      {/* iPhone-width primary navigation — iPad keeps the sidebar rail */}
+      <BottomTabBar
+        activeView={activeView}
+        onSelectView={(view) => {
+          setActiveView(view);
+          setIsSidebarOpen(false);
+        }}
+        onOpenMore={() => setIsSidebarOpen(true)}
+      />
 
       <div className="main-content-wrapper">
         <div className="mobile-top-bar">

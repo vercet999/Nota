@@ -1,37 +1,53 @@
 /* ─── index.css ─────────────────────────────────────────────────────────────
-   Adoma Study AI — Editorial Dark Theme
-   Fonts: Playfair Display (headings) + DM Sans (body)
-   Palette: deep charcoal + warm accent + soft cream
+   Nota — iOS-native dark theme
+   Font: SF Pro (system stack) — no external font dependency
+   Palette: true-black iOS dark mode (systemBackground / grouped surfaces)
+   Built for installed-as-web-app on iPhone/iPad: safe-area-aware, blur
+   materials, spring-style motion.
    ─────────────────────────────────────────────────────────────────────────── */
 
 /* ── CSS Variables ── */
 :root {
-  --bg-base: #131211;
-  --bg-surface: #1c1a18;
-  --bg-raised: #252220;
-  --bg-input: #2a2724;
+  /* iOS dark grouped-background hierarchy */
+  --bg-base: #000000;
+  --bg-surface: #1c1c1e;
+  --bg-raised: #2c2c2e;
+  --bg-input: #1c1c1e;
 
-  --accent: #e8a030;
+  /* Accent — refined toward iOS systemOrange, keeps the brand's warm tone */
+  --accent: #ff9f0a;
   --accent-dim: color-mix(in srgb, var(--accent) 76%, black);
-  --accent-glow: color-mix(in srgb, var(--accent) 12%, transparent);
-  --border-accent: color-mix(in srgb, var(--accent) 25%, transparent);
+  --accent-glow: color-mix(in srgb, var(--accent) 14%, transparent);
+  --border-accent: color-mix(in srgb, var(--accent) 30%, transparent);
 
-  --text-primary: #f0ece4;
-  --text-secondary: #a09890;
-  --text-muted: #6a6460;
+  /* iOS label color hierarchy (dark mode) */
+  --text-primary: rgba(255, 255, 255, 0.95);
+  --text-secondary: rgba(235, 235, 245, 0.6);
+  --text-muted: rgba(235, 235, 245, 0.3);
 
-  --border: rgba(240, 236, 228, 0.08);
+  --border: rgba(255, 255, 255, 0.1);
 
-  --mode-exam: #4a9eff;
-  --mode-simple: #5ec97a;
-  --mode-journalism: #e06fa0;
+  /* Translucent "material" surfaces for nav/blur bars */
+  --material-bg: rgba(28, 28, 30, 0.78);
+  --material-blur: saturate(180%) blur(20px);
 
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 18px;
+  --mode-exam: #0a84ff;
+  --mode-simple: #30d158;
+  --mode-journalism: #ff375f;
 
-  --font-display: "Playfair Display", Georgia, serif;
-  --font-body: "DM Sans", system-ui, sans-serif;
+  /* iOS continuous-corner-style radii */
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+
+  /* Safe-area insets — 0 with a fallback on non-notched / non-PWA contexts */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
 }
 
 /* ── Reset & Base ── */
@@ -41,6 +57,7 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 
 html,
@@ -56,8 +73,11 @@ body {
   font-family: var(--font-body);
   font-size: 15px;
   line-height: 1.6;
+  letter-spacing: -0.01em;
   -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
 }
+
 
 /* ── App Layout (full-height flex layout) ── */
 .app-layout {
@@ -78,9 +98,21 @@ body {
   text-align: center;
   font-size: 12px;
   color: var(--accent);
-  background: var(--bg-raised);
+  background: var(--material-bg);
+  backdrop-filter: var(--material-blur);
+  -webkit-backdrop-filter: var(--material-blur);
   border-bottom: 1px solid var(--border-accent);
-  padding: 6px 12px;
+  padding: calc(6px + var(--safe-top)) 12px 6px;
+}
+
+/* ── Sidebar backdrop (mobile slide-over dimming) ── */
+.sidebar-backdrop {
+  display: none;
+}
+
+/* ── Bottom tab bar (iPhone-width primary navigation) ── */
+.bottom-tab-bar {
+  display: none;
 }
 
 /* ── Expandable Left Sidebar ── */
@@ -219,6 +251,7 @@ body {
   flex-direction: column;
   height: 100%;
   position: relative;
+  max-width: 1000px;
 }
 
 /* ── Header ── */
@@ -374,7 +407,7 @@ body {
 /* ── Message Bubbles ── */
 .message-bubble {
   position: relative;
-  max-width: 85%;
+  max-width: 75%;
   padding: 14px 18px;
   border-radius: var(--radius-md);
   animation: fadeUp 0.2s ease-out;
@@ -443,7 +476,7 @@ body {
   background: var(--bg-surface);
   border: 1px solid var(--border);
   color: var(--text-primary);
-  max-width: 92%;
+  max-width: 80%;
 }
 
 .message-bubble.welcome {
@@ -490,6 +523,8 @@ body {
 .assistant-text h2,
 .assistant-text h3 {
   font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
   color: var(--accent);
   margin: 16px 0 8px;
 }
@@ -856,7 +891,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 100;
+  z-index: 400;
   animation: fadeIn 0.15s ease-out;
 }
 
@@ -870,14 +905,16 @@ body {
 }
 
 .modal-content {
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  width: 90%;
-  max-width: 400px;
-  padding: 24px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  position: relative;
+  /* background: var(--bg-surface); */
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    width: 90%;
+    max-width: 400px;
+    padding: 24px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    position: relative;
+    max-height: 80vh;
+    overflow: auto;
 }
 
 .modal-header {
@@ -1031,28 +1068,32 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 0 10px;
+  justify-content: flex-start;
+  padding: 48px 10px 0;
+  overflow-y: auto;
 }
 
 .welcome-typewriter-wrapper {
-  margin-bottom: 40px;
+  margin-bottom: 28px;
   width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
 /* ── Dashboard ── */
 .dashboard {
   width: 100%;
-  max-width: 640px;
+  max-width: 680px;
   margin: 0 auto;
   text-align: left;
 }
 
 .dashboard-greeting h1 {
   font-family: var(--font-display);
-  font-size: clamp(26px, 5vw, 38px);
+  font-size: clamp(28px, 5vw, 40px);
   color: var(--text-primary);
-  font-weight: 500;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .dashboard-institution {
@@ -1077,53 +1118,40 @@ body {
   padding: 6px 14px;
 }
 
-.dashboard-actions {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-  margin-top: 28px;
-}
-
-.dashboard-action-card {
+.dashboard-due-banner {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 16px 8px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
+  gap: 10px;
+  width: 100%;
+  margin-top: 18px;
+  padding: 14px 16px;
+  background: var(--accent-glow);
+  border: 1px solid var(--border-accent);
   border-radius: var(--radius-md);
-  color: var(--text-secondary);
-  font-size: 12px;
-  cursor: pointer;
-  transition: border-color 0.15s, color 0.15s, transform 0.15s;
-}
-
-.dashboard-action-card:hover {
-  border-color: var(--border-accent);
   color: var(--accent);
-  transform: translateY(-2px);
+  cursor: pointer;
+  transition: transform 0.15s;
 }
 
-.dashboard-badge {
-  position: absolute;
-  top: -8px;
-  right: -10px;
-  background: #e05050;
-  color: #fff;
-  font-size: 10px;
-  font-weight: 600;
-  min-width: 16px;
-  height: 16px;
-  border-radius: 999px;
+.dashboard-due-banner:active {
+  transform: scale(0.98);
+}
+
+.dashboard-due-banner-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 4px;
+}
+
+.dashboard-due-banner-text {
+  flex: 1;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .dashboard-recents {
-  margin-top: 32px;
+  margin-top: 28px;
 }
 
 .dashboard-recents-label {
@@ -1163,12 +1191,6 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-@media (max-width: 520px) {
-  .dashboard-actions {
-    grid-template-columns: repeat(2, 1fr);
-  }
 }
 
 .typewriter-large {
@@ -1279,7 +1301,7 @@ body {
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 6px;
-  z-index: 50;
+  z-index: 245;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
   display: flex;
   flex-direction: column;
@@ -1684,9 +1706,9 @@ body {
     color: var(--accent);
   }
 
-  /* Sidebar must overlay the model switcher and everything else on mobile */
+  /* Sidebar must overlay the model switcher, the tab bar, and everything else on mobile */
   .left-sidebar.expanded {
-    z-index: 200 !important;
+    z-index: 260 !important;
   }
 
   /* Mobile welcome input — 90% width, comfortable padding */
@@ -2092,4 +2114,98 @@ body {
 
 .delete-confirm-btn:hover {
   background: #c03030;
+}
+/* ── iPhone-width layout: bottom tab bar + slide-over sidebar ─────────────
+   iPad (>768px in portrait) keeps the existing sidebar rail, matching
+   Apple's own apps (Notes, Mail: rail on iPad, tab bar on iPhone). ── */
+@media (max-width: 768px) {
+  .bottom-tab-bar {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 240;
+    padding: 8px calc(8px + var(--safe-right)) calc(6px + var(--safe-bottom)) calc(8px + var(--safe-left));
+    background: var(--material-bg);
+    backdrop-filter: var(--material-blur);
+    -webkit-backdrop-filter: var(--material-blur);
+    border-top: 1px solid var(--border);
+  }
+
+  .tab-bar-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-family: var(--font-body);
+    font-size: 10px;
+    font-weight: 500;
+    padding: 4px 0;
+    cursor: pointer;
+    transition: color 0.15s;
+  }
+
+  .tab-bar-item.active {
+    color: var(--accent);
+  }
+
+  /* Sidebar becomes a full slide-over sheet instead of a persistent rail */
+  .left-sidebar {
+    width: 0;
+    min-width: 0;
+    border-right: none;
+    box-shadow: none;
+  }
+
+  .left-sidebar.expanded {
+    width: 82vw;
+    max-width: 320px;
+    min-width: 0;
+    z-index: 260;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+  }
+
+  .sidebar-content-wrapper {
+    min-width: 0;
+    padding-top: calc(24px + var(--safe-top));
+  }
+
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 250;
+    animation: fadeIn 0.2s ease;
+  }
+
+  /* Reserve clearance so the fixed tab bar never covers the composer —
+     margin (not padding) so empty space appears below the input, which
+     the floating tab bar then sits over. */
+  .input-area {
+    margin-bottom: calc(58px + var(--safe-bottom)) !important;
+  }
+
+  .welcome-main {
+    padding-bottom: calc(58px + var(--safe-bottom));
+  }
+
+  .flashcards-view {
+    padding-bottom: calc(58px + var(--safe-bottom)) !important;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
