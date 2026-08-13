@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { X, FolderOpen } from "lucide-react";
+import { useEscapeKey } from "../hooks/useEscapeKey";
 
 export const COLORS = {
   neutral: [
@@ -29,6 +30,7 @@ export function SettingsModal({
   onSave,
   onManageChats,
 }) {
+  useEscapeKey(isOpen, onClose);
   const [nameInput, setNameInput] = useState(currentName);
   const [colorInput, setColorInput] = useState(currentColor || "#e8a030");
   const [institutionInput, setInstitutionInput] = useState(currentInstitution || "");

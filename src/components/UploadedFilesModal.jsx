@@ -8,6 +8,7 @@ import {
   X, FileText, Download, BookOpen, NotebookPen,
   FileSpreadsheet, Presentation, Loader2,
 } from "lucide-react";
+import { useEscapeKey } from "../hooks/useEscapeKey";
 import { getAllDocuments, saveNote } from "../utils/db";
 import { generateNotes } from "../utils/claudeApi";
 import ReactMarkdown from "react-markdown";
@@ -70,6 +71,7 @@ function NotesOverlay({ notes, fileName, onClose }) {
 }
 
 export function UploadedFilesModal({ isOpen, onClose, onLoadIntoContext, modelId }) {
+  useEscapeKey(isOpen, onClose);
   const [docs, setDocs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [generatingFor, setGeneratingFor] = useState(null);
@@ -108,7 +110,7 @@ export function UploadedFilesModal({ isOpen, onClose, onLoadIntoContext, modelId
 
   return (
     <>
-      <div className="modal-overlay" style={{ zIndex: 100 }} onClick={onClose}>
+      <div className="modal-overlay" onClick={onClose}>
         <div
           className="modal-content"
           onClick={(e) => e.stopPropagation()}

@@ -8,7 +8,6 @@ import {
   Plus,
   Search,
   FolderDown,
-  GraduationCap,
   Send,
   ChevronDown,
   AlertTriangle,
@@ -208,6 +207,13 @@ export default function App() {
   const handleInputChange = (e) => {
     setInputText(e.target.value);
     autoGrow(e.target);
+  };
+
+  // On mobile the sidebar is a full-screen slide-over sheet, so selecting a
+  // nav item must dismiss it or the new view stays hidden underneath it.
+  // On desktop/iPad it's a pinned rail, so this intentionally does nothing there.
+  const closeMobileSidebar = () => {
+    if (window.innerWidth <= 768) setIsSidebarOpen(false);
   };
 
   const handleVoiceResult = useCallback(
@@ -416,6 +422,7 @@ export default function App() {
                 clearSession();
                 setActiveView("chat");
                 setSelectedCourse(null);
+                closeMobileSidebar();
               }}
             >
               <span className="sidebar-item-icon">
@@ -425,7 +432,7 @@ export default function App() {
             </button>
             <button
               className="sidebar-item"
-              onClick={() => setIsSearchOpen(true)}
+              onClick={() => { setIsSearchOpen(true); closeMobileSidebar(); }}
             >
               <span className="sidebar-item-icon">
                 <Search size={20} strokeWidth={1.5} />
@@ -434,7 +441,7 @@ export default function App() {
             </button>
             <button
               className={`sidebar-item ${activeView === "notes" ? "active" : ""}`}
-              onClick={() => setActiveView("notes")}
+              onClick={() => { setActiveView("notes"); closeMobileSidebar(); }}
             >
               <span className="sidebar-item-icon">
                 <NotebookPen size={20} strokeWidth={1.5} />
@@ -443,7 +450,7 @@ export default function App() {
             </button>
             <button
               className={`sidebar-item ${activeView === "flashcards" ? "active" : ""}`}
-              onClick={() => setActiveView("flashcards")}
+              onClick={() => { setActiveView("flashcards"); closeMobileSidebar(); }}
             >
               <span className="sidebar-item-icon">
                 <Library size={20} strokeWidth={1.5} />
@@ -452,7 +459,7 @@ export default function App() {
             </button>
             <button
               className={`sidebar-item ${activeView === "quiz" ? "active" : ""}`}
-              onClick={() => setActiveView("quiz")}
+              onClick={() => { setActiveView("quiz"); closeMobileSidebar(); }}
             >
               <span className="sidebar-item-icon">
                 <BrainCircuit size={20} strokeWidth={1.5} />
@@ -461,7 +468,7 @@ export default function App() {
             </button>
             <button
               className={`sidebar-item ${activeView === "fill-blanks" ? "active" : ""}`}
-              onClick={() => setActiveView("fill-blanks")}
+              onClick={() => { setActiveView("fill-blanks"); closeMobileSidebar(); }}
             >
               <span className="sidebar-item-icon">
                 <FileText size={20} strokeWidth={1.5} />
@@ -470,7 +477,7 @@ export default function App() {
             </button>
             <button
               className="sidebar-item"
-              onClick={() => setIsFilesModalOpen(true)}
+              onClick={() => { setIsFilesModalOpen(true); closeMobileSidebar(); }}
               title="Uploaded Files"
             >
               <span className="sidebar-item-icon">
@@ -493,7 +500,7 @@ export default function App() {
           <div className="sidebar-bottom">
             <button
               className="sidebar-item"
-              onClick={() => setIsSettingsOpen(true)}
+              onClick={() => { setIsSettingsOpen(true); closeMobileSidebar(); }}
             >
               <span className="sidebar-item-icon profile-icon-wrap">
                 <div
@@ -576,11 +583,6 @@ export default function App() {
             />
           ) : messages.length === 0 ? (
             <div className="welcome-screen">
-              <header className="welcome-header">
-                <button className="icon-btn">
-                  <GraduationCap size={20} strokeWidth={1.5} />
-                </button>
-              </header>
               <main className="welcome-main">
                 <div className="welcome-typewriter-wrapper">
                   <Dashboard
@@ -843,7 +845,7 @@ export default function App() {
                   <textarea
                     ref={textareaRef}
                     className="message-input"
-                    placeholder="Ask anything — type your question or paste your notes..."
+                    placeholder="Ask anything..."
                     value={inputText}
                     onChange={handleInputChange}
                     onKeyDown={handleKeyDown}

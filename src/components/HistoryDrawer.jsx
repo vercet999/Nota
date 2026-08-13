@@ -6,6 +6,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { X, MessageSquare, Trash2, AlertTriangle, GraduationCap } from "lucide-react";
 import { getSessions, deleteSession } from "../utils/db";
+import { useEscapeKey } from "../hooks/useEscapeKey";
 
 function parseCourses(coursesText) {
   if (!coursesText || !coursesText.trim()) return [];
@@ -84,6 +85,7 @@ function DeleteConfirm({ session, onConfirm, onCancel }) {
 
 // ── Main component ─────────────────────────────────────────────────────────────
 export function HistoryDrawer({ isOpen, onClose, onLoadSession, courses }) {
+  useEscapeKey(isOpen, onClose);
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
@@ -127,7 +129,7 @@ export function HistoryDrawer({ isOpen, onClose, onLoadSession, courses }) {
 
   return (
     <>
-      <div className="modal-overlay" onClick={onClose} style={{ zIndex: 100 }}>
+      <div className="modal-overlay" onClick={onClose}>
         <div
           className="modal-content chat-manager-modal"
           onClick={(e) => e.stopPropagation()}

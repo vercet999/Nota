@@ -319,10 +319,10 @@ export function FlashcardsView({ onBack, uploadedFiles, messages, modelId, onLoa
         <div
           className="flashcard-setup"
           style={{
-            maxWidth: "800px",
+            maxWidth: "680px",
             margin: "0 auto",
-            textAlign: "center",
-            marginTop: "40px",
+            textAlign: "left",
+            marginTop: "8px",
           }}
         >
           {dueCount > 0 && (

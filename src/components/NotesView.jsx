@@ -191,30 +191,30 @@ export function NotesView({ onBack, modelId }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%" }}>
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 24px", background: "var(--bg-base)", borderBottom: "1px solid var(--border)", flexShrink: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+      <div className="notes-header">
+        <div style={{ display: "flex", alignItems: "center", gap: "16px", minWidth: 0 }}>
           <button className="icon-btn" onClick={onBack} title="Back to Chat">
             <ArrowLeft size={20} />
           </button>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "16px", fontWeight: 600, color: "var(--text-primary)" }}>
-            <NotebookPen size={18} style={{ color: "var(--accent)" }} />
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "16px", fontWeight: 600, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            <NotebookPen size={18} style={{ color: "var(--accent)", flexShrink: 0 }} />
             Study {activeTab === "notes" ? "Notes" : "Summaries"}
           </div>
         </div>
-        <div style={{ display: "flex", gap: "8px" }}>
-          <button 
-            className="btn-secondary" 
-            style={{ padding: "6px 12px", gap: "6px", fontSize: "13px" }} 
+        <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
+          <button
+            className="btn-secondary notes-header-btn"
             onClick={handleExportAll}
+            title="Export All"
           >
-            <Download size={14} /> Export All
+            <Download size={14} /> <span className="notes-header-btn-label">Export All</span>
           </button>
-          <button 
-            className="btn-primary" 
-            style={{ padding: "6px 12px", gap: "6px", fontSize: "13px" }} 
+          <button
+            className="btn-primary notes-header-btn"
             onClick={handleCreateNew}
+            title={`New ${activeTab === "notes" ? "Note" : "Summary"}`}
           >
-            <Plus size={14} /> New {activeTab === "notes" ? "Note" : "Summary"}
+            <Plus size={14} /> <span className="notes-header-btn-label">New {activeTab === "notes" ? "Note" : "Summary"}</span>
           </button>
         </div>
       </div>

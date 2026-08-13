@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { Search, X, MessageSquare } from 'lucide-react'
+import { useEscapeKey } from '../hooks/useEscapeKey'
 
 export function SearchModal({ isOpen, onClose, messages, onSelectMessage }) {
   const [query, setQuery] = useState('')
+  useEscapeKey(isOpen, onClose)
 
   useEffect(() => {
     if (isOpen) {
@@ -18,7 +20,7 @@ export function SearchModal({ isOpen, onClose, messages, onSelectMessage }) {
   )
 
   return (
-    <div className="modal-overlay" style={{ zIndex: 100 }} onClick={onClose}>
+    <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px', width: '90%', padding: '24px' }}>
         <button className="modal-close" onClick={onClose} aria-label="Close">
           <X size={20} />
@@ -74,7 +76,9 @@ export function SearchModal({ isOpen, onClose, messages, onSelectMessage }) {
             </div>
           ) : (
             <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '40px 0' }}>
-              No results found for "{query}"
+              {query === ''
+                ? 'Start typing to search this conversation.'
+                : `No results found for "${query}"`}
             </div>
           )}
         </div>

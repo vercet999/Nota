@@ -762,7 +762,7 @@ body {
   display: flex;
   gap: 10px;
   align-items: flex-end;
-  padding: 0 24px 20px;
+  padding: 0 24px calc(20px + var(--safe-bottom));
   flex-shrink: 0;
   width: 100%;
 }
@@ -1069,7 +1069,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  padding: 48px 10px 0;
+  padding: 48px 10px calc(32px + var(--safe-bottom));
   overflow-y: auto;
 }
 
@@ -1424,7 +1424,8 @@ body {
   .chat-window {
     padding: 16px;
   }
-  .message-bubble {
+  .message-bubble,
+  .message-bubble.assistant {
     max-width: 95%;
   }
   .mode-label {
@@ -1737,7 +1738,45 @@ body {
   }
 }
 
-/* ── Flashcard config custom dropdown trigger ── */
+/* ── Notes header (back + title + actions) ── */
+.notes-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 24px;
+  background: var(--bg-base);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.notes-header-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+  /* Clear the floating mobile-top-bar (model switcher) so it never
+     overlaps the title — that pill floats at top:12px, ~36px tall. */
+  .notes-header {
+    padding: calc(56px + var(--safe-top)) 16px 12px;
+    flex-wrap: wrap;
+  }
+
+  /* Collapse action buttons to icon-only so two buttons + a title
+     never have to fit their full labels in one row. */
+  .notes-header-btn-label {
+    display: none;
+  }
+
+  .notes-header-btn {
+    padding: 8px;
+  }
+}
 .flashcard-config-trigger {
   width: 100%;
   font-family: var(--font-body);
